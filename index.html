@@ -1384,7 +1384,7 @@
       <path d="M 70 30 L 90 40 L 80 60" stroke="var(--tape-pink)" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <div class="compose-row compose-row-user">
-      <input type="text" id="usernameInput" placeholder="nama kamu (e.g. jagoan mabar)" maxlength="24" value="Kang Cilok">
+      <input type="text" id="usernameInput" placeholder="nama kamu (e.g. jagoan mabar)" maxlength="24" value="">
     </div>
     <div class="compose-row">
       <input type="text" id="captionInput" placeholder="spill dong hari ini ngapain? 👀" maxlength="120">
@@ -2473,6 +2473,17 @@
   const subpagePostBtnOriginalHtml = subpagePostBtn.innerHTML;
   subpagePostBtn.addEventListener('click', async () => {
     if (pendingMedia.length === 0) return;
+
+    // Nama wajib diisi sebelum bisa upload; kalau kosong, minta isi dulu
+    const typedName = usernameInput.value.trim();
+    if (!typedName) {
+      showToast('Isi nama kamu dulu ya sebelum upload! ✍️');
+      usernameInput.focus();
+      usernameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    // Simpan nama supaya nggak perlu diinput lagi di lain waktu
+    localStorage.setItem('pap_username', typedName);
 
     // Pause semua preview video sebelum disimpan
     subpageMediaRow.querySelectorAll('video').forEach(v => {
