@@ -2163,6 +2163,39 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVveG5nZ29ndmVseXJnaWlta21yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5NzQyMjAsImV4cCI6MjEwMDU1MDIyMH0.jqoWwUeiVkTYTg_wGMkPpDluhtIdcLXLcK4ng8T2fiE';
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const MEDIA_BUCKET = 'pap-media';
+
+  // ===== Kunci scroll background pas overlay full-page (halaman profil / halaman
+  // bikin postingan) lagi kebuka =====
+  // Tanpa ini, di HP background mading kadang masih ikut ke-scroll pas kita scroll
+  // konten di dalam overlay (efek "scroll chaining"), padahal overlay-nya udah
+  // nutupin full-screen. Triknya: pas overlay dibuka, body di-"fixed"-in persis di
+  // posisi scroll terakhir, terus pas ditutup posisi scroll-nya dibalikin lagi.
+  let bodyScrollLockY = 0;
+  function lockBodyScroll() {
+    bodyScrollLockY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${bodyScrollLockY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+  }
+  function unlockBodyScroll() {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    // <html> global-nya pakai scroll-behavior:smooth, jadi kalau langsung
+    // window.scrollTo() ke posisi terakhir, keliatan kayak nge-scroll animasi dari
+    // atas ke bawah dulu. Matiin smooth-scroll sebentar doang pas balikin posisi
+    // ini biar hasilnya langsung "lompat" ke posisi terakhir, instan.
+    const prevScrollBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.scrollTo(0, bodyScrollLockY);
+    // Paksa reflow dulu sebelum balikin scroll-behavior biar lompatannya kepakai instan
+    void document.documentElement.offsetHeight;
+    document.documentElement.style.scrollBehavior = prevScrollBehavior;
+  }
   const feedEl = document.getElementById('feed');
   const emptyState = document.getElementById('emptyState');
   const captionInput = document.getElementById('captionInput');
@@ -2299,9 +2332,38 @@
         return { ok: false, reason: 'taken' };
       }
 
+      // Ambil foto profil + nama lengkap yang mungkin udah kesimpen di baris lama
+      // milik device ini (kalau sebelumnya udah pernah pakai nama lain), biar tetap
+      // kebawa waktu ganti nama. Sekalian bersihin baris lama itu supaya 1 device
+      // cuma punya 1 baris akun -- soalnya kalau dibiarin numpuk, query yang nyari
+      // profil sendiri lewat device_id bisa gagal (nemu >1 baris) dan bikin foto
+      // profil/nama lengkap yang udah disimpan seolah-olah "hilang" lagi.
+      let prevFullName = null;
+      let prevAvatarUrl = null;
+      try {
+        const { data: prevRows } = await sb
+          .from(ACCOUNTS_TABLE)
+          .select('full_name, avatar_url')
+          .eq('device_id', deviceId);
+        if (prevRows && prevRows.length) {
+          const withData = prevRows.find(r => r.full_name || r.avatar_url) || prevRows[0];
+          prevFullName = withData.full_name || null;
+          prevAvatarUrl = withData.avatar_url || null;
+          await sb.from(ACCOUNTS_TABLE).delete().eq('device_id', deviceId);
+        }
+      } catch (cleanupErr) {
+        console.error('Gagal membersihkan akun lama', cleanupErr);
+      }
+
       const { error: insErr } = await sb
         .from(ACCOUNTS_TABLE)
-        .insert({ username: key, display_name: display, device_id: deviceId });
+        .insert({
+          username: key,
+          display_name: display,
+          device_id: deviceId,
+          full_name: prevFullName,
+          avatar_url: prevAvatarUrl
+        });
       if (insErr) {
         // 23505 = unique_violation -> keduluan orang lain pas race condition
         if (insErr.code === '23505') return { ok: false, reason: 'taken' };
@@ -2488,14 +2550,18 @@
 
   async function loadMyAccountCache() {
     try {
+      // Sengaja nggak pakai .maybeSingle() di sini: kalau (dari data lama sebelum
+      // perbaikan di claimUsername) device ini ternyata masih punya lebih dari 1
+      // baris akun, .maybeSingle() bakal error dan foto profil/nama lengkap jadi
+      // gagal ke-load sama sekali. Ambil aja baris yang paling lengkap datanya.
       const { data, error } = await sb
         .from(ACCOUNTS_TABLE)
         .select('full_name, avatar_url')
-        .eq('device_id', deviceId)
-        .maybeSingle();
+        .eq('device_id', deviceId);
       if (error) throw error;
-      myAccountCache.full_name = (data && data.full_name) || null;
-      myAccountCache.avatar_url = (data && data.avatar_url) || null;
+      const row = (data && (data.find(r => r.full_name || r.avatar_url) || data[0])) || null;
+      myAccountCache.full_name = (row && row.full_name) || null;
+      myAccountCache.avatar_url = (row && row.avatar_url) || null;
     } catch (e) {
       console.error('Gagal memuat profil sendiri', e);
     }
@@ -2548,13 +2614,36 @@
   let currentProfileTab = 'grid'; // 'grid' | 'video' | 'tagged'
   const profileTabBtns = Array.from(document.querySelectorAll('.profile-tab'));
 
+  // Dipakai supaya closeProfile() nggak nge-trigger history.back() dua kali waktu
+  // dia sendiri dipanggil DARI dalam listener popstate (klik tombol back HP).
+  let closingProfileFromPopstate = false;
+
   function closeProfile() {
+    if (!profileOverlay.classList.contains('open')) return;
     profileOverlay.classList.remove('open');
     currentProfileUsername = null;
     currentProfileTab = 'grid';
     profileTabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === 'grid'));
+    unlockBodyScroll();
+    // Kalau ditutup lewat UI (tombol X / klik thumbnail grid) dan history state saat
+    // ini memang nandain "halaman profil lagi kebuka", mundurin history 1 langkah
+    // biar tombol back HP nggak nge-"nyangkut" di state kosong. Kalau closeProfile()
+    // ini dipanggil DARI listener popstate (dari tombol back), skip biar nggak dobel.
+    if (!closingProfileFromPopstate && history.state && history.state.papProfileOpen) {
+      history.back();
+    }
   }
   profileBackBtn.addEventListener('click', closeProfile);
+
+  // Tombol/gesture back bawaan HP (atau tombol back browser): kalau halaman profil
+  // lagi kebuka, tutup halaman profilnya dulu, JANGAN langsung keluar dari mading.
+  window.addEventListener('popstate', () => {
+    if (profileOverlay.classList.contains('open')) {
+      closingProfileFromPopstate = true;
+      closeProfile();
+      closingProfileFromPopstate = false;
+    }
+  });
 
   function postsForProfile(key) {
     return posts
@@ -2696,7 +2785,15 @@
     profileStatFollowing.innerText = '...';
     profileBtnRow.innerHTML = '';
     renderProfileGrid(key);
+
+    const wasAlreadyOpen = profileOverlay.classList.contains('open');
     profileOverlay.classList.add('open');
+    if (!wasAlreadyOpen) {
+      lockBodyScroll();
+      // Push 1 history state biar tombol back HP nutup halaman profil ini dulu,
+      // bukan langsung ninggalin mading/app.
+      history.pushState({ papProfileOpen: true }, '');
+    }
 
     try {
       const [accRes, followerRes, followingRes, myFollowRes] = await Promise.all([
@@ -4094,6 +4191,7 @@
     subpageTitleInput.value = "";
     subpageDescInput.value = captionInput.value.trim();
     subpageOverlay.classList.add('open');
+    lockBodyScroll();
   }
 
   function closeSubpage() {
@@ -4102,6 +4200,7 @@
       v.pause();
       v.currentTime = 0;
     });
+    unlockBodyScroll();
   }
 
   // Render previews secara dinamis di dalam baris media subpage, mendukung campuran foto & video
