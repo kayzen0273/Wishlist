@@ -206,6 +206,10 @@
   }
   .compose-row-user{
     margin-bottom:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
   }
   .compose-row-user input[type=text]{
     flex:none;
@@ -219,6 +223,22 @@
     padding:4px 4px;
     color:var(--ink);
     outline:none;
+  }
+  .delete-account-btn{
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:11.5px;
+    font-weight:700;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:2px 0;
+    opacity:0.75;
+  }
+  .delete-account-btn:hover{
+    color:var(--pin-red);
+    opacity:1;
   }
   .post-header{
     display:flex;
@@ -712,6 +732,11 @@
     color:var(--pin-red);
     font-weight:700;
   }
+  .comment-item .clickable-name{
+    color:var(--pin-red);
+    font-weight:700;
+    font-size:inherit;
+  }
   .comment-block{
     display:flex;
     flex-direction:column;
@@ -897,6 +922,7 @@
     }
     .compose-row-user {
       margin-bottom: 4px !important;
+      justify-content: space-between !important;
     }
     .compose-row input[type=text] {
       width: 100% !important;
@@ -1269,6 +1295,17 @@
   #nameModalInput:focus {
     border-color: var(--tape-pink);
   }
+  .name-modal-error {
+    display: none;
+    color: var(--pin-red);
+    font-size: 12.5px;
+    font-weight: 700;
+    margin: -12px 0 14px;
+    text-align: center;
+  }
+  .name-modal-error.show {
+    display: block;
+  }
   @keyframes fadeInModal {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -1542,6 +1579,356 @@
   @media (max-width:600px){
     .notif-btn{ top:14px; right:12px; width:40px; height:40px; }
   }
+
+  /* ===== Nama yang bisa diklik (buka profil) ===== */
+  .clickable-name{
+    background:none;
+    border:none;
+    padding:0;
+    margin:0;
+    font:inherit;
+    color:inherit;
+    cursor:pointer;
+    text-align:left;
+  }
+  .clickable-name:hover{
+    text-decoration:underline;
+  }
+  .post-user-link{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+    min-width:0;
+  }
+
+  /* Avatar kecil di sebelah kolom nama compose, buka profil sendiri */
+  .my-profile-avatar-btn{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:2px solid var(--paper-edge);
+    background:var(--tape-yellow);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    cursor:pointer;
+    overflow:hidden;
+    padding:0;
+  }
+  .my-profile-avatar-btn img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  /* ===== Halaman Profil (tema gelap ala Threads/IG) ===== */
+  .profile-overlay{
+    position:fixed;
+    inset:0;
+    background:#101014;
+    z-index:600;
+    display:flex;
+    flex-direction:column;
+    transform:translateY(100%);
+    transition:transform .35s cubic-bezier(0.32,0.94,0.6,1);
+    color:#f2f2f2;
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+  .profile-overlay.open{
+    transform:translateY(0);
+  }
+  @media (min-width:641px){
+    .profile-overlay{
+      max-width:480px;
+      margin:0 auto;
+      border-left:2px solid #26262c;
+      border-right:2px solid #26262c;
+      box-shadow:0 -5px 30px rgba(0,0,0,0.35);
+      border-radius:20px 20px 0 0;
+      height:94vh;
+      top:6vh;
+      bottom:0;
+      inset:auto 0 0 0;
+    }
+  }
+  .profile-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 18px 8px;
+    flex-shrink:0;
+  }
+  .profile-back-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:6px;
+    color:#f2f2f2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .profile-header-handle{
+    font-weight:800;
+    font-size:17px;
+  }
+  .profile-content{
+    flex:1;
+    overflow-y:auto;
+    padding:4px 20px 30px;
+  }
+  .profile-top-row{
+    display:flex;
+    align-items:flex-start;
+    gap:18px;
+    margin:10px 0 18px;
+  }
+  .profile-avatar{
+    width:82px;
+    height:82px;
+    border-radius:50%;
+    background:#2b2b32;
+    color:#f2f2f2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    font-weight:800;
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .profile-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .profile-stats{
+    display:flex;
+    gap:22px;
+    margin-top:10px;
+    flex:1;
+  }
+  .profile-stat{
+    display:flex;
+    flex-direction:column;
+    font-size:15px;
+  }
+  .profile-stat b{
+    font-size:17px;
+    font-weight:800;
+  }
+  .profile-stat span{
+    color:#9a9aa2;
+    font-size:12.5px;
+  }
+  .profile-fullname{
+    font-weight:800;
+    font-size:16px;
+    margin-bottom:2px;
+  }
+  .profile-username-sub{
+    color:#9a9aa2;
+    font-size:13.5px;
+    margin-bottom:14px;
+  }
+  .profile-btn-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .profile-btn{
+    flex:1;
+    padding:9px 0;
+    border-radius:10px;
+    border:none;
+    background:#26262e;
+    color:#f2f2f2;
+    font-weight:700;
+    font-size:14.5px;
+    cursor:pointer;
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+  .profile-btn:active{
+    opacity:0.8;
+  }
+  .profile-btn-follow{
+    background:#3b6bf5;
+  }
+  .profile-btn-following{
+    background:#26262e;
+    border:1px solid #3a3a42;
+  }
+  .profile-tabs{
+    display:flex;
+    border-top:1px solid #26262c;
+    border-bottom:1px solid #26262c;
+    margin-bottom:2px;
+  }
+  .profile-tab{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:12px 0;
+    background:none;
+    border:none;
+    color:#6a6a72;
+    cursor:pointer;
+  }
+  .profile-tab.active{
+    color:#f2f2f2;
+    border-bottom:2px solid #f2f2f2;
+  }
+  .profile-tab svg{
+    width:22px;
+    height:22px;
+  }
+  .profile-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:3px;
+    margin-top:8px;
+  }
+  .profile-grid-item{
+    position:relative;
+    aspect-ratio:1;
+    background:#1c1c22;
+    overflow:hidden;
+    cursor:pointer;
+    border:none;
+    padding:0;
+  }
+  .profile-grid-item img,
+  .profile-grid-item video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .profile-grid-item .grid-video-badge{
+    position:absolute;
+    top:6px;
+    right:6px;
+    width:16px;
+    height:16px;
+    color:#fff;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+  }
+  .profile-empty-grid{
+    grid-column:1/-1;
+    text-align:center;
+    color:#6a6a72;
+    padding:40px 10px;
+    font-size:14px;
+  }
+
+  @keyframes highlightFlash {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59,107,245,0); }
+    25%, 75% { box-shadow: 0 0 0 4px rgba(59,107,245,0.55); }
+  }
+  .polaroid.highlight-flash {
+    animation: highlightFlash 1.1s ease;
+  }
+
+  /* ===== Modal Edit Profil ===== */
+  #editProfileModal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    z-index:700;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .edit-profile-box{
+    background:#18181d;
+    color:#f2f2f2;
+    border-radius:18px;
+    padding:22px 20px;
+    width:100%;
+    max-width:340px;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    text-align:center;
+  }
+  .edit-profile-box h3{
+    font-size:17px;
+    font-weight:800;
+    margin-bottom:16px;
+  }
+  .edit-avatar-picker{
+    width:88px;
+    height:88px;
+    border-radius:50%;
+    background:#2b2b32;
+    margin:0 auto 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    font-weight:800;
+    cursor:pointer;
+    overflow:hidden;
+    position:relative;
+    border:2px dashed #3a3a42;
+  }
+  .edit-avatar-picker img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .edit-avatar-picker .edit-avatar-hint{
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    background:rgba(0,0,0,0.55);
+    font-size:10.5px;
+    padding:3px 0;
+  }
+  #editFullNameInput{
+    width:100%;
+    background:#0f0f13;
+    border:1px solid #3a3a42;
+    border-radius:10px;
+    padding:10px 12px;
+    color:#f2f2f2;
+    font-size:15px;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    margin-bottom:16px;
+    outline:none;
+  }
+  .edit-profile-btns{
+    display:flex;
+    gap:8px;
+  }
+  .edit-profile-btns button{
+    flex:1;
+    padding:10px 0;
+    border-radius:10px;
+    border:none;
+    font-weight:700;
+    font-size:14.5px;
+    cursor:pointer;
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+  #editProfileCancelBtn{
+    background:#26262e;
+    color:#f2f2f2;
+  }
+  #editProfileSaveBtn{
+    background:#3b6bf5;
+    color:#fff;
+  }
 </style>
 </head>
 <body>
@@ -1611,7 +1998,9 @@
       <path d="M 70 30 L 90 40 L 80 60" stroke="var(--tape-pink)" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <div class="compose-row compose-row-user">
+      <button type="button" class="my-profile-avatar-btn" id="myProfileAvatarBtn" aria-label="Lihat profil kamu">?</button>
       <input type="text" id="usernameInput" placeholder="nama kamu (e.g. jagoan mabar)" maxlength="24" value="">
+      <button type="button" class="delete-account-btn" id="deleteAccountBtn">🗑️ hapus akun</button>
     </div>
     <div class="compose-row">
       <input type="text" id="captionInput" placeholder="spill dong hari ini ngapain? 👀" maxlength="120">
@@ -1674,6 +2063,66 @@
   </div>
 </div>
 
+<!-- Halaman Profil (dibuka dari nama sendiri / nama di postingan & komentar) -->
+<div id="profileOverlay" class="profile-overlay">
+  <div class="profile-header">
+    <button class="profile-back-btn" id="profileBackBtn" aria-label="Kembali">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    <div class="profile-header-handle" id="profileHeaderHandle">@username</div>
+    <div style="width:30px;"></div>
+  </div>
+
+  <div class="profile-content">
+    <div class="profile-top-row">
+      <div class="profile-avatar" id="profileAvatarBig">?</div>
+      <div class="profile-stats">
+        <div class="profile-stat"><b id="profileStatPosts">0</b><span>postingan</span></div>
+        <div class="profile-stat"><b id="profileStatFollowers">0</b><span>pengikut</span></div>
+        <div class="profile-stat"><b id="profileStatFollowing">0</b><span>mengikuti</span></div>
+      </div>
+    </div>
+    <div class="profile-fullname" id="profileFullName">&nbsp;</div>
+    <div class="profile-username-sub" id="profileUsernameSub">@username</div>
+
+    <div class="profile-btn-row" id="profileBtnRow"></div>
+
+    <div class="profile-tabs">
+      <button class="profile-tab active" data-tab="grid" aria-label="Postingan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+      </button>
+      <button class="profile-tab" data-tab="video" aria-label="Video">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      </button>
+      <button class="profile-tab" data-tab="tagged" aria-label="Ditandai">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>
+      </button>
+    </div>
+
+    <div class="profile-grid" id="profileGrid"></div>
+  </div>
+</div>
+
+<!-- Modal Edit Profil (ganti foto + nama) -->
+<div id="editProfileModal">
+  <div class="edit-profile-box">
+    <h3>Edit Profil</h3>
+    <div class="edit-avatar-picker" id="editAvatarPicker">
+      <span id="editAvatarInner">?</span>
+      <div class="edit-avatar-hint">ganti foto</div>
+    </div>
+    <input type="file" id="editAvatarFileInput" accept="image/*" style="display:none;">
+    <input type="text" id="editFullNameInput" placeholder="Nama lengkap kamu" maxlength="40">
+    <div class="edit-profile-btns">
+      <button id="editProfileCancelBtn">Batal</button>
+      <button id="editProfileSaveBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <!-- Custom Confirmation Modal -->
 <div id="customConfirmModal">
   <div class="confirm-box">
@@ -1694,6 +2143,7 @@
     <h3>Siapa Nama Kamu?</h3>
     <p>Isi nama dulu ya sebelum posting PAP. Nanti nggak perlu diketik lagi kok!</p>
     <input type="text" id="nameModalInput" placeholder="nama kamu (e.g. jagoan mabar)" maxlength="24">
+    <div class="name-modal-error" id="nameModalError">nama ini udah dipakai orang lain, coba nama lain ya 🙏</div>
     <div class="confirm-btns">
       <button class="btn-cancel" id="nameModalCancelBtn">Batal</button>
       <button class="btn-ok" id="nameModalOkBtn">Simpan &amp; Posting</button>
@@ -1717,6 +2167,7 @@
   const emptyState = document.getElementById('emptyState');
   const captionInput = document.getElementById('captionInput');
   const usernameInput = document.getElementById('usernameInput');
+  const deleteAccountBtn = document.getElementById('deleteAccountBtn');
   const mediaInput = document.getElementById('mediaInput');
   const mediaAddBtn = document.getElementById('mediaAddBtn');
   const mediaAddDropdown = document.getElementById('mediaAddDropdown');
@@ -1749,12 +2200,14 @@
   // Modal isi nama (wajib sebelum upload)
   const nameModal = document.getElementById('nameModal');
   const nameModalInput = document.getElementById('nameModalInput');
+  const nameModalError = document.getElementById('nameModalError');
   const nameModalOkBtn = document.getElementById('nameModalOkBtn');
   const nameModalCancelBtn = document.getElementById('nameModalCancelBtn');
   let nameModalCallback = null;
 
   function showNameModal(onSaved) {
     nameModalInput.value = usernameInput.value.trim();
+    nameModalError.classList.remove('show');
     nameModalCallback = onSaved;
     nameModal.style.display = 'flex';
     setTimeout(() => nameModalInput.focus(), 50);
@@ -1762,20 +2215,137 @@
 
   function hideNameModal() {
     nameModal.style.display = 'none';
+    nameModalError.classList.remove('show');
     nameModalCallback = null;
   }
 
   nameModalCancelBtn.addEventListener('click', hideNameModal);
 
-  function confirmNameModal() {
+  // Menyeragamkan nama (trim + lowercase) biar perbandingan/pencocokan pemilik konsisten
+  function normalizeName(n) {
+    return (n || '').trim().toLowerCase();
+  }
+
+  // Meng-escape karakter HTML biar teks notifikasi (nama/preview komen) aman dirender
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // ===== Akun / keunikan username =====
+  // Nggak ada sistem login beneran (nama doang), jadi "akun" di sini dikaitkan ke
+  // perangkat/browser lewat sebuah id acak yang disimpan di localStorage. Tabel
+  // `accounts` di Supabase punya kolom username UNIQUE, jadi 2 orang gak bisa pakai
+  // nama yang sama persis (dibandingkan tanpa peduli besar-kecil huruf).
+  const ACCOUNTS_TABLE = 'accounts';
+  const FOLLOWS_TABLE = 'follows';
+
+  // Elemen-elemen buat halaman Profil & modal Edit Profil
+  const myProfileAvatarBtn = document.getElementById('myProfileAvatarBtn');
+  const profileOverlay = document.getElementById('profileOverlay');
+  const profileBackBtn = document.getElementById('profileBackBtn');
+  const profileHeaderHandle = document.getElementById('profileHeaderHandle');
+  const profileAvatarBig = document.getElementById('profileAvatarBig');
+  const profileStatPosts = document.getElementById('profileStatPosts');
+  const profileStatFollowers = document.getElementById('profileStatFollowers');
+  const profileStatFollowing = document.getElementById('profileStatFollowing');
+  const profileFullName = document.getElementById('profileFullName');
+  const profileUsernameSub = document.getElementById('profileUsernameSub');
+  const profileBtnRow = document.getElementById('profileBtnRow');
+  const profileGrid = document.getElementById('profileGrid');
+  const editProfileModal = document.getElementById('editProfileModal');
+  const editAvatarPicker = document.getElementById('editAvatarPicker');
+  const editAvatarInner = document.getElementById('editAvatarInner');
+  const editAvatarFileInput = document.getElementById('editAvatarFileInput');
+  const editFullNameInput = document.getElementById('editFullNameInput');
+  const editProfileCancelBtn = document.getElementById('editProfileCancelBtn');
+  const editProfileSaveBtn = document.getElementById('editProfileSaveBtn');
+
+  function getDeviceId() {
+    let id = localStorage.getItem('pap_device_id');
+    if (!id) {
+      id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      localStorage.setItem('pap_device_id', id);
+    }
+    return id;
+  }
+  const deviceId = getDeviceId();
+
+  // Nama yang terakhir sukses "diklaim" di sesi ini, dipakai buat balikin nilai input
+  // kalau user ganti nama langsung di kolom compose dan ternyata nama itu udah dipakai.
+  let confirmedUsername = '';
+
+  // Coba klaim sebuah username buat perangkat ini. Balikin {ok:true} kalau berhasil
+  // (baik baru diklaim maupun memang udah punya perangkat ini), atau {ok:false} kalau
+  // nama itu udah dipakai orang/perangkat lain.
+  async function claimUsername(rawName) {
+    const display = (rawName || '').trim();
+    const key = normalizeName(display);
+    if (!key) return { ok: false, reason: 'empty' };
+
+    try {
+      const { data: existing, error: selErr } = await sb
+        .from(ACCOUNTS_TABLE)
+        .select('username, device_id')
+        .eq('username', key)
+        .maybeSingle();
+      if (selErr) throw selErr;
+
+      if (existing) {
+        if (existing.device_id === deviceId) {
+          return { ok: true };
+        }
+        return { ok: false, reason: 'taken' };
+      }
+
+      const { error: insErr } = await sb
+        .from(ACCOUNTS_TABLE)
+        .insert({ username: key, display_name: display, device_id: deviceId });
+      if (insErr) {
+        // 23505 = unique_violation -> keduluan orang lain pas race condition
+        if (insErr.code === '23505') return { ok: false, reason: 'taken' };
+        throw insErr;
+      }
+      return { ok: true };
+    } catch (e) {
+      console.error('Gagal memeriksa/klaim username', e);
+      return { ok: false, reason: 'error' };
+    }
+  }
+
+  async function confirmNameModal() {
     const val = nameModalInput.value.trim();
     if (!val) {
       nameModalInput.focus();
       return;
     }
+    nameModalError.classList.remove('show');
+    nameModalOkBtn.disabled = true;
+    const prevText = nameModalOkBtn.innerText;
+    nameModalOkBtn.innerText = 'Mengecek...';
+
+    const result = await claimUsername(val);
+
+    nameModalOkBtn.disabled = false;
+    nameModalOkBtn.innerText = prevText;
+
+    if (!result.ok) {
+      if (result.reason === 'taken') {
+        nameModalError.innerText = 'nama ini udah dipakai orang lain, coba nama lain ya 🙏';
+      } else {
+        nameModalError.innerText = 'gagal ngecek nama, coba lagi ya 🥲';
+      }
+      nameModalError.classList.add('show');
+      nameModalInput.focus();
+      return;
+    }
+
     usernameInput.value = val;
+    confirmedUsername = val;
     localStorage.setItem('pap_username', val);
     loadNotifications();
+    loadMyAccountCache();
     const cb = nameModalCallback;
     hideNameModal();
     if (cb) cb();
@@ -1792,18 +2362,6 @@
     callback();
   }
 
-  // Menyeragamkan nama (trim + lowercase) biar perbandingan/pencocokan pemilik konsisten
-  function normalizeName(n) {
-    return (n || '').trim().toLowerCase();
-  }
-
-  // Meng-escape karakter HTML biar teks notifikasi (nama/preview komen) aman dirender
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
-
   nameModalOkBtn.addEventListener('click', confirmNameModal);
   nameModalInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -1812,9 +2370,493 @@
     }
   });
 
-  // Mengambil nama terakhir yang dimasukkan pengguna
+  // Klaim/hapus akun waktu user ganti nama langsung di kolom compose (bukan lewat modal).
+  // Dipasang di listener 'change' (usernameInput) yang sudah ada di bagian bawah script.
+  async function handleUsernameCommit() {
+    const val = usernameInput.value.trim();
+    if (!val) {
+      confirmedUsername = '';
+      return;
+    }
+    if (normalizeName(val) === normalizeName(confirmedUsername)) {
+      return; // gak berubah, gak perlu klaim ulang
+    }
+    const result = await claimUsername(val);
+    if (!result.ok) {
+      showToast(result.reason === 'taken'
+        ? 'nama itu udah dipakai orang lain, coba nama lain ya 🙏'
+        : 'gagal ngecek nama, coba lagi ya 🥲');
+      usernameInput.value = confirmedUsername;
+      localStorage.setItem('pap_username', confirmedUsername);
+      return;
+    }
+    confirmedUsername = val;
+    localStorage.setItem('pap_username', val);
+    loadNotifications();
+    loadMyAccountCache();
+  }
+
+  // Hapus akun: lepas nama yang udah diklaim biar bisa dipakai orang lain lagi, sekalian
+  // hapus semua postingan (dan notifikasi masuk) milik nama itu, lalu balik ke keadaan
+  // "belum isi nama". Postingan dicocokkan lewat teks nama (bukan id akun beneran),
+  // sama seperti cara "pemilik postingan" dicek di tempat lain di app ini.
+  async function deleteAccount() {
+    const current = usernameInput.value.trim();
+    if (!current) {
+      showToast('belum ada akun yang diisi nih 😅');
+      return;
+    }
+    const me = normalizeName(current);
+
+    try {
+      // 1) Hapus semua postingan milik nama ini dari Supabase.
+      const { error: postsErr } = await sb
+        .from('posts')
+        .delete()
+        .ilike('user_name', current);
+      if (postsErr) throw postsErr;
+
+      // 2) Hapus notifikasi yang masuk ke nama ini (kotak masuknya sendiri).
+      const { error: notifErr } = await sb
+        .from(NOTIF_TABLE)
+        .delete()
+        .eq('recipient_name', me);
+      if (notifErr) console.error('Gagal menghapus notifikasi akun', notifErr);
+
+      // 3) Lepas nama dari tabel accounts biar bebas dipakai orang lain.
+      const { error: accErr } = await sb.from(ACCOUNTS_TABLE).delete().eq('device_id', deviceId);
+      if (accErr) throw accErr;
+
+      // 4) Bersihkan relasi follow (baik yang dia follow, maupun yang follow dia).
+      const { error: followErr1 } = await sb.from(FOLLOWS_TABLE).delete().eq('follower_username', me);
+      if (followErr1) console.error('Gagal menghapus data following', followErr1);
+      const { error: followErr2 } = await sb.from(FOLLOWS_TABLE).delete().eq('following_username', me);
+      if (followErr2) console.error('Gagal menghapus data followers', followErr2);
+
+      // Bersihkan postingan milik nama ini dari tampilan lokal juga.
+      const idsToRemove = posts.filter(p => normalizeName(p.user) === me).map(p => p.id);
+      posts = posts.filter(p => normalizeName(p.user) !== me);
+      idsToRemove.forEach(id => removePostCard(id));
+
+      usernameInput.value = '';
+      confirmedUsername = '';
+      localStorage.removeItem('pap_username');
+      notifications = [];
+      renderNotifications();
+      myAccountCache = { avatar_url: null, full_name: null };
+      updateMyProfileAvatarBtn();
+
+      showToast('akun & postingan kamu berhasil dihapus, nama itu bebas dipakai lagi ya 👋');
+    } catch (e) {
+      console.error('Gagal menghapus akun', e);
+      showToast('gagal menghapus akun, coba lagi ya 🥲');
+    }
+  }
+
+  deleteAccountBtn.addEventListener('click', () => {
+    const current = usernameInput.value.trim();
+    if (!current) {
+      showToast('belum ada akun yang diisi nih 😅');
+      return;
+    }
+    showConfirm(
+      () => { deleteAccount(); },
+      'Hapus Akun?',
+      `Nama "${current}" dan SEMUA postingan (beserta notifikasinya) bakal dihapus permanen dari mading ini. Nama itu jadi bebas dipakai orang lain lagi. Yakin nih?`,
+      'Ya, Hapus Semua',
+      'Batal'
+    );
+  });
+
+  // ===== Cache profil sendiri (foto & nama lengkap) buat avatar kecil di compose row =====
+  let myAccountCache = { avatar_url: null, full_name: null };
+
+  function updateMyProfileAvatarBtn() {
+    const name = usernameInput.value.trim();
+    if (!name) {
+      myProfileAvatarBtn.innerHTML = '?';
+      myProfileAvatarBtn.style.background = 'var(--tape-yellow)';
+      return;
+    }
+    if (myAccountCache.avatar_url) {
+      myProfileAvatarBtn.innerHTML = `<img src="${myAccountCache.avatar_url}" alt="">`;
+    } else {
+      myProfileAvatarBtn.innerHTML = esc(initials(name));
+      myProfileAvatarBtn.style.background = avatarColor(normalizeName(name));
+    }
+  }
+
+  async function loadMyAccountCache() {
+    try {
+      const { data, error } = await sb
+        .from(ACCOUNTS_TABLE)
+        .select('full_name, avatar_url')
+        .eq('device_id', deviceId)
+        .maybeSingle();
+      if (error) throw error;
+      myAccountCache.full_name = (data && data.full_name) || null;
+      myAccountCache.avatar_url = (data && data.avatar_url) || null;
+    } catch (e) {
+      console.error('Gagal memuat profil sendiri', e);
+    }
+    updateMyProfileAvatarBtn();
+  }
+
+  myProfileAvatarBtn.addEventListener('click', () => {
+    const name = usernameInput.value.trim();
+    if (!name) {
+      showToast('isi nama kamu dulu ya buat lihat profil 😅');
+      return;
+    }
+    openProfile(name);
+  });
+
+  // Ambil foto profil (avatar_url) semua penulis postingan yang lagi tampil di mading,
+  // lalu tempel sebagai background-image di lingkaran avatar tiap kartu (yang sebelumnya
+  // cuma nampilin inisial warna-warni). Dipanggil sekali abis load awal, dan tiap kali ada
+  // postingan baru masuk lewat realtime.
+  async function refreshFeedAvatars() {
+    const usernames = [...new Set(posts.map(p => normalizeName(p.user)).filter(Boolean))];
+    if (!usernames.length) return;
+    try {
+      const { data, error } = await sb
+        .from(ACCOUNTS_TABLE)
+        .select('username, avatar_url')
+        .in('username', usernames);
+      if (error) throw error;
+      const avatarMap = {};
+      (data || []).forEach(row => { if (row.avatar_url) avatarMap[row.username] = row.avatar_url; });
+      posts.forEach(p => {
+        const url = avatarMap[normalizeName(p.user)];
+        if (!url) return;
+        const avatarEl = feedEl.querySelector(`.polaroid[data-post-id="${p.id}"] .post-header .avatar`);
+        if (avatarEl && avatarEl.dataset.avatarSrc !== url) {
+          avatarEl.style.backgroundImage = `url("${url}")`;
+          avatarEl.style.backgroundSize = 'cover';
+          avatarEl.style.backgroundPosition = 'center';
+          avatarEl.innerText = '';
+          avatarEl.dataset.avatarSrc = url;
+        }
+      });
+    } catch (e) {
+      console.error('Gagal memuat foto profil buat feed', e);
+    }
+  }
+
+  // ===== Halaman Profil (dibuka dari nama sendiri, atau nama di postingan/komentar) =====
+  let currentProfileUsername = null; // versi normalized dari profil yang sedang dibuka
+  let currentProfileTab = 'grid'; // 'grid' | 'video' | 'tagged'
+  const profileTabBtns = Array.from(document.querySelectorAll('.profile-tab'));
+
+  function closeProfile() {
+    profileOverlay.classList.remove('open');
+    currentProfileUsername = null;
+    currentProfileTab = 'grid';
+    profileTabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === 'grid'));
+  }
+  profileBackBtn.addEventListener('click', closeProfile);
+
+  function postsForProfile(key) {
+    return posts
+      .filter(p => normalizeName(p.user) === key)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+
+  function renderProfileGrid(key) {
+    const allPosts = postsForProfile(key);
+    profileStatPosts.innerText = allPosts.length;
+
+    if (currentProfileTab === 'tagged') {
+      profileGrid.innerHTML = `<div class="profile-empty-grid">belum ada fitur tandain orang di sini 🙈</div>`;
+      return;
+    }
+
+    const shownPosts = currentProfileTab === 'video'
+      ? allPosts.filter(p => getMediaItems(p).some(m => m.type === 'video'))
+      : allPosts;
+
+    if (!shownPosts.length) {
+      profileGrid.innerHTML = `<div class="profile-empty-grid">${currentProfileTab === 'video' ? 'belum ada video 📭' : 'belum ada postingan 📭'}</div>`;
+      return;
+    }
+    profileGrid.innerHTML = shownPosts.map(p => {
+      const first = getMediaItems(p)[0] || {};
+      const isVideo = first.type === 'video';
+      const thumbInner = isVideo
+        ? `<video src="${first.src}" muted playsinline></video><svg class="grid-video-badge" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`
+        : `<img src="${first.src}" alt="">`;
+      return `<button class="profile-grid-item" data-action="profile-grid-open" data-id="${p.id}">${thumbInner}</button>`;
+    }).join('');
+  }
+
+  profileTabBtns.forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+      if (tabBtn.classList.contains('active')) return;
+      profileTabBtns.forEach(b => b.classList.remove('active'));
+      tabBtn.classList.add('active');
+      currentProfileTab = tabBtn.dataset.tab;
+      if (currentProfileUsername) renderProfileGrid(currentProfileUsername);
+    });
+  });
+
+  // Klik thumbnail grid: tutup halaman profil, lalu scroll ke postingannya di mading utama
+  profileGrid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.profile-grid-item');
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    closeProfile();
+    setTimeout(() => {
+      const card = feedEl.querySelector(`.polaroid[data-post-id="${id}"]`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('highlight-flash');
+        setTimeout(() => card.classList.remove('highlight-flash'), 1200);
+      }
+    }, 380);
+  });
+
+  // Bikin link deep-link ke profil (pakai hash, biar gak perlu server routing tambahan)
+  // supaya "Bagikan profil" bisa nyalin URL yang beneran bisa dibuka & langsung nampilin
+  // profil orang itu (lewat listener hashchange/onload di bagian bawah script).
+  function buildProfileUrl(key) {
+    return `${location.origin}${location.pathname}#profil=${encodeURIComponent(key)}`;
+  }
+
+  function shareProfile(key) {
+    const url = buildProfileUrl(key);
+    const done = () => showToast('link profil disalin ke clipboard 📋');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done).catch(done);
+    } else {
+      done();
+    }
+  }
+
+  function renderProfileButtons(key, isOwn, isFollowing) {
+    if (isOwn) {
+      profileBtnRow.innerHTML = `
+        <button class="profile-btn" id="profileEditBtn">Edit profil</button>
+        <button class="profile-btn" id="profileShareBtn">Bagikan profil</button>
+      `;
+      document.getElementById('profileEditBtn').addEventListener('click', openEditProfile);
+    } else {
+      profileBtnRow.innerHTML = `
+        <button class="profile-btn ${isFollowing ? 'profile-btn-following' : 'profile-btn-follow'}" id="profileFollowBtn">${isFollowing ? 'Mengikuti' : 'Follow'}</button>
+        <button class="profile-btn" id="profileShareBtn">Bagikan profil</button>
+      `;
+      document.getElementById('profileFollowBtn').addEventListener('click', () => toggleFollow(key));
+    }
+    document.getElementById('profileShareBtn').addEventListener('click', () => shareProfile(key));
+  }
+
+  async function toggleFollow(targetKey) {
+    requireName(async () => {
+      const me = normalizeName(usernameInput.value);
+      if (!me || me === targetKey) return;
+      const btn = document.getElementById('profileFollowBtn');
+      const wasFollowing = !!(btn && btn.classList.contains('profile-btn-following'));
+      if (btn) btn.disabled = true;
+      try {
+        if (wasFollowing) {
+          const { error } = await sb.from(FOLLOWS_TABLE).delete()
+            .eq('follower_username', me).eq('following_username', targetKey);
+          if (error) throw error;
+        } else {
+          const { error } = await sb.from(FOLLOWS_TABLE).insert({
+            follower_username: me, following_username: targetKey, follower_device_id: deviceId
+          });
+          if (error && error.code !== '23505') throw error;
+        }
+        if (currentProfileUsername === targetKey) {
+          renderProfileButtons(targetKey, false, !wasFollowing);
+          const current = parseInt(profileStatFollowers.innerText, 10) || 0;
+          profileStatFollowers.innerText = Math.max(0, current + (wasFollowing ? -1 : 1));
+        }
+      } catch (e) {
+        console.error('Gagal follow/unfollow', e);
+        showToast('gagal memproses follow, coba lagi ya 🥲');
+        if (btn) btn.disabled = false;
+      }
+    });
+  }
+
+  async function openProfile(rawUsername) {
+    const key = normalizeName(rawUsername);
+    if (!key) return;
+    currentProfileUsername = key;
+    const isOwn = normalizeName(usernameInput.value) === key;
+
+    // Render dulu versi cepat pakai data yang udah ada di sisi client, biar responsif.
+    profileHeaderHandle.innerText = `@${rawUsername.trim()}`;
+    profileUsernameSub.innerText = `@${rawUsername.trim()}`;
+    profileFullName.innerHTML = '&nbsp;';
+    profileAvatarBig.innerHTML = esc(initials(rawUsername));
+    profileAvatarBig.style.background = avatarColor(key);
+    profileStatFollowers.innerText = '...';
+    profileStatFollowing.innerText = '...';
+    profileBtnRow.innerHTML = '';
+    renderProfileGrid(key);
+    profileOverlay.classList.add('open');
+
+    try {
+      const [accRes, followerRes, followingRes, myFollowRes] = await Promise.all([
+        sb.from(ACCOUNTS_TABLE).select('full_name, avatar_url, display_name').eq('username', key).maybeSingle(),
+        sb.from(FOLLOWS_TABLE).select('*', { count: 'exact', head: true }).eq('following_username', key),
+        sb.from(FOLLOWS_TABLE).select('*', { count: 'exact', head: true }).eq('follower_username', key),
+        isOwn
+          ? Promise.resolve({ data: null })
+          : sb.from(FOLLOWS_TABLE).select('follower_username')
+              .eq('follower_username', normalizeName(usernameInput.value))
+              .eq('following_username', key)
+              .maybeSingle()
+      ]);
+
+      if (currentProfileUsername !== key) return; // udah pindah/nutup profil pas nunggu
+
+      const acc = accRes.data || null;
+      const handle = (acc && acc.display_name) || rawUsername.trim();
+      profileHeaderHandle.innerText = `@${handle}`;
+      profileUsernameSub.innerText = `@${handle}`;
+      profileFullName.innerText = (acc && acc.full_name) ? acc.full_name : '';
+      if (!profileFullName.innerText) profileFullName.innerHTML = '&nbsp;';
+
+      if (acc && acc.avatar_url) {
+        profileAvatarBig.innerHTML = `<img src="${acc.avatar_url}" alt="">`;
+      } else {
+        profileAvatarBig.innerHTML = esc(initials(handle));
+        profileAvatarBig.style.background = avatarColor(key);
+      }
+
+      profileStatFollowers.innerText = followerRes.count || 0;
+      profileStatFollowing.innerText = followingRes.count || 0;
+
+      renderProfileButtons(key, isOwn, !isOwn && !!(myFollowRes && myFollowRes.data));
+    } catch (e) {
+      console.error('Gagal memuat profil', e);
+      profileStatFollowers.innerText = '0';
+      profileStatFollowing.innerText = '0';
+      renderProfileButtons(key, isOwn, false);
+    }
+  }
+
+  // Dispatcher klik khusus buat nama-nama yang bisa diklik di dalam feed (post-header,
+  // komentar, balasan). Dipasang di sini (bukan di dalam dispatcher aksi tombol utama
+  // feedEl yang sudah ada) supaya tetap jalan walau tombolnya tidak punya data-id postingan
+  // yang valid.
+  feedEl.addEventListener('click', (e) => {
+    const nameBtn = e.target.closest('[data-action="open-profile"]');
+    if (!nameBtn) return;
+    e.stopPropagation();
+    openProfile(nameBtn.dataset.username);
+  });
+
+  // ===== Modal Edit Profil (ganti foto + nama lengkap) =====
+  let editAvatarFile = null;
+
+  function openEditProfile() {
+    editAvatarFile = null;
+    editFullNameInput.value = myAccountCache.full_name || '';
+    if (myAccountCache.avatar_url) {
+      editAvatarPicker.style.background = 'transparent';
+      editAvatarInner.innerHTML = `<img src="${myAccountCache.avatar_url}" alt="">`;
+    } else {
+      editAvatarPicker.style.background = '#2b2b32';
+      editAvatarInner.innerHTML = esc(initials(usernameInput.value.trim()));
+    }
+    editProfileModal.style.display = 'flex';
+  }
+
+  editAvatarPicker.addEventListener('click', () => editAvatarFileInput.click());
+  editAvatarFileInput.addEventListener('change', () => {
+    const file = editAvatarFileInput.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('cuma bisa pakai foto ya buat foto profil!');
+      return;
+    }
+    editAvatarFile = file;
+    const reader = new FileReader();
+    reader.onload = () => {
+      editAvatarPicker.style.background = 'transparent';
+      editAvatarInner.innerHTML = `<img src="${reader.result}" alt="">`;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  editProfileCancelBtn.addEventListener('click', () => {
+    editProfileModal.style.display = 'none';
+  });
+
+  editProfileSaveBtn.addEventListener('click', async () => {
+    const me = normalizeName(usernameInput.value);
+    if (!me) {
+      editProfileModal.style.display = 'none';
+      return;
+    }
+    const prevText = editProfileSaveBtn.innerText;
+    editProfileSaveBtn.disabled = true;
+    editProfileSaveBtn.innerText = 'Menyimpan...';
+
+    try {
+      let avatarUrl = myAccountCache.avatar_url || null;
+      if (editAvatarFile) {
+        const ext = (editAvatarFile.name.split('.').pop() || 'jpg').toLowerCase();
+        const path = `avatars/${deviceId}-${Date.now()}.${ext}`;
+        const { error: upErr } = await sb.storage.from(MEDIA_BUCKET).upload(path, editAvatarFile, { upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = sb.storage.from(MEDIA_BUCKET).getPublicUrl(path);
+        avatarUrl = pub.publicUrl;
+      }
+      const fullName = editFullNameInput.value.trim();
+
+      const { error } = await sb
+        .from(ACCOUNTS_TABLE)
+        .update({ full_name: fullName || null, avatar_url: avatarUrl })
+        .eq('device_id', deviceId);
+      if (error) throw error;
+
+      myAccountCache.full_name = fullName || null;
+      myAccountCache.avatar_url = avatarUrl;
+      updateMyProfileAvatarBtn();
+
+      if (currentProfileUsername === me) {
+        profileFullName.innerText = fullName || '';
+        if (!profileFullName.innerText) profileFullName.innerHTML = '&nbsp;';
+        if (avatarUrl) profileAvatarBig.innerHTML = `<img src="${avatarUrl}" alt="">`;
+      }
+
+      editProfileModal.style.display = 'none';
+      showToast('profil berhasil diupdate ✨');
+      refreshFeedAvatars();
+    } catch (e) {
+      console.error('Gagal menyimpan profil', e);
+      showToast('gagal menyimpan profil, coba lagi ya 🥲');
+    } finally {
+      editProfileSaveBtn.disabled = false;
+      editProfileSaveBtn.innerText = prevText;
+    }
+  });
+
+  // Mengambil nama terakhir yang dimasukkan pengguna, lalu diam-diam pastikan nama itu
+  // masih "milik" perangkat ini di tabel accounts (migrasi otomatis buat user lama /
+  // jaga-jaga kalau ternyata udah diambil orang lain).
   if (localStorage.getItem('pap_username')) {
-    usernameInput.value = localStorage.getItem('pap_username');
+    const savedName = localStorage.getItem('pap_username');
+    usernameInput.value = savedName;
+    confirmedUsername = savedName;
+    claimUsername(savedName).then(result => {
+      if (!result.ok && result.reason === 'taken') {
+        showToast(`nama "${savedName}" ternyata udah dipakai orang lain, yuk isi nama baru 🙏`);
+        usernameInput.value = '';
+        confirmedUsername = '';
+        localStorage.removeItem('pap_username');
+        updateMyProfileAvatarBtn();
+      } else {
+        loadMyAccountCache();
+      }
+    });
+  } else {
+    updateMyProfileAvatarBtn();
   }
 
   // Array postingan mading, sekarang diisi dari Supabase (shared, bukan localStorage lagi)
@@ -1906,7 +2948,7 @@
   // Hapus notifikasi lama dgn kombinasi recipient+actor+type+post yang sama. Dipakai sebelum
   // insert baru (biar 1 postingan cuma nongol 1 notif per jenis interaksi per orang), dan
   // dipakai juga buat kasus unlike (hapus tanpa gantiin notif baru sama sekali).
-  async function removeNotification({ recipientName, actorName, type, postId }) {
+  async function _removeNotificationImpl({ recipientName, actorName, type, postId }) {
     const recipient = normalizeName(recipientName);
     const actor = normalizeName(actorName);
     if (!recipient || !actor) return;
@@ -1935,11 +2977,11 @@
   // ngirim ke diri sendiri (misal like postingan sendiri) biar nggak spam notif kosong.
   // Notif lama dgn kombinasi recipient+actor+type+post yang sama dihapus dulu, jadi kalau
   // orang yang sama like/komen berkali-kali di post yang sama, yang muncul di notif tetap 1.
-  async function insertNotification({ recipientName, actorName, type, postId, previewText }) {
+  async function _insertNotificationImpl({ recipientName, actorName, type, postId, previewText }) {
     const recipient = normalizeName(recipientName);
     const actor = normalizeName(actorName);
     if (!recipient || recipient === actor) return;
-    await removeNotification({ recipientName, actorName, type, postId });
+    await _removeNotificationImpl({ recipientName, actorName, type, postId });
     try {
       const { data, error } = await sb.from(NOTIF_TABLE).insert({
         recipient_name: recipient,
@@ -1961,6 +3003,30 @@
     } catch (e) {
       console.error("Gagal mengirim notifikasi ke Supabase", e);
     }
+  }
+
+  // insertNotification & removeNotification asli di atas cuma "sekali jalan" — kalau dipanggil
+  // dari klik yang bertubi-tubi (misal: like, unlike, like lagi dalam waktu singkat), promise-nya
+  // bisa selesai gak berurutan (race condition). Akibatnya delete "mendahului" insert yang belum
+  // kelar, jadi notif lama kelewat gak kehapus dan muncul dobel di panel (kayak kejadian like →
+  // unlike → like cepat). Makanya di sini tiap kombinasi recipient+actor+type+post dikasih antrian
+  // sendiri (Promise chain) biar tiap operasi nunggu operasi sebelumnya (utk kombinasi yg sama)
+  // beneran selesai dulu sebelum lanjut, jadi hasil akhirnya selalu konsisten: 1 notif per kombinasi.
+  const notifOpChain = new Map();
+  function notifOpKey({ recipientName, actorName, type, postId }) {
+    return `${normalizeName(recipientName)}|${normalizeName(actorName)}|${type}|${postId}`;
+  }
+  function queueNotifOp(key, fn) {
+    const prev = notifOpChain.get(key) || Promise.resolve();
+    const next = prev.then(fn, fn);
+    notifOpChain.set(key, next.catch(() => {}));
+    return next;
+  }
+  function removeNotification(args) {
+    return queueNotifOp(notifOpKey(args), () => _removeNotificationImpl(args));
+  }
+  function insertNotification(args) {
+    return queueNotifOp(notifOpKey(args), () => _insertNotificationImpl(args));
   }
 
   async function markNotificationRead(id) {
@@ -2115,9 +3181,8 @@
       showToast("Gagal memuat mading dari server 🥲 Cek koneksi internet kamu ya!");
     }
     render();
+    refreshFeedAvatars();
   }
-
-  // Menyimpan perubahan (likes & komentar) satu postingan tertentu ke Supabase
   async function saveToStorage(post) {
     if (!post) return;
     try {
@@ -2161,6 +3226,7 @@
         // Tambah 1 kartu baru aja di paling atas, tanpa render() ulang seluruh feed — biar
         // video yang lagi diputar di postingan lain gak kesentak pas ada orang lain posting.
         prependPostCard(newPost);
+        refreshFeedAvatars();
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload) => {
         const idx = posts.findIndex(p => p.id === payload.new.id);
@@ -2370,7 +3436,7 @@
   function renderReplyItem(postId, commentId, r){
     return `
         <div class="reply-item">
-          <div class="comment-item" style="--accent:${avatarColor(r.user)}"><b>${esc(r.user)}</b> ${esc(r.text)}</div>
+          <div class="comment-item" style="--accent:${avatarColor(r.user)}"><button class="clickable-name" data-action="open-profile" data-username="${esc(r.user)}">${esc(r.user)}</button> ${esc(r.text)}</div>
           <div class="comment-actions">
             <button class="mini-like ${r.liked ? 'liked':''}" data-action="like-reply" data-post="${postId}" data-comment="${commentId}" data-reply="${r.id}">
               ${heartSvg(r.liked)}<span>${r.likes}</span>
@@ -2387,7 +3453,7 @@
 
     return `
       <div class="comment-block">
-        <div class="comment-item" style="--accent:${avatarColor(c.user)}"><b>${esc(c.user)}</b> ${esc(c.text)}</div>
+        <div class="comment-item" style="--accent:${avatarColor(c.user)}"><button class="clickable-name" data-action="open-profile" data-username="${esc(c.user)}">${esc(c.user)}</button> ${esc(c.text)}</div>
         <div class="comment-actions">
           <button class="mini-like ${c.liked ? 'liked':''}" data-action="like-comment" data-post="${postId}" data-comment="${c.id}">
             ${heartSvg(c.liked)}<span>${c.likes}</span>
@@ -2533,8 +3599,10 @@
       card.innerHTML = `
         ${mountHtml}
         <div class="post-header">
-          <div class="avatar" style="background:${avatarColor(post.user || '?')}">${esc(initials(post.user))}</div>
-          <div class="post-username">${esc(post.user || 'Si Fulan')}</div>
+          <button class="post-user-link clickable-name" data-action="open-profile" data-username="${esc(post.user || 'Si Fulan')}" style="border:none;background:none;padding:0;cursor:pointer;">
+            <div class="avatar" style="background:${avatarColor(post.user || '?')}">${esc(initials(post.user))}</div>
+            <div class="post-username">${esc(post.user || 'Si Fulan')}</div>
+          </button>
           <div class="post-menu-wrap">
             <button class="post-menu-btn" data-action="toggle-menu" data-id="${post.id}" aria-label="opsi postingan">
               <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
@@ -3162,7 +4230,10 @@
   });
 
   usernameInput.addEventListener('input', () => {
-    localStorage.setItem('pap_username', usernameInput.value.trim());
+    // Catatan: nama BELUM disimpan ke localStorage/tabel accounts di sini. Baru
+    // di-"klaim" (dicek keunikannya) waktu field ini kehilangan fokus, lewat
+    // handleUsernameCommit() di listener 'change' di bawah.
+    //
     // Update parsial: cuma konten dropdown menu titik tiga tiap post yang perlu berubah
     // (tombol hapus muncul/hilang tergantung siapa pemiliknya), TANPA render() ulang seluruh
     // feed. Field nama ini biasanya diisi PAS MAU UPLOAD, jadi kalau render() ulang dipanggil
@@ -3179,7 +4250,7 @@
   });
 
   usernameInput.addEventListener('change', () => {
-    loadNotifications();
+    handleUsernameCommit();
   });
 
   subpageBackBtn.addEventListener('click', () => {
@@ -3268,7 +4339,17 @@
     await doUploadPost();
   });
 
-  loadPosts();
+  // Kalau URL punya #profil=username (dari link hasil "Bagikan profil"), otomatis buka
+  // halaman profil itu begitu data mading selesai dimuat.
+  function tryOpenProfileFromHash() {
+    const m = location.hash.match(/^#profil=(.+)$/);
+    if (m) {
+      try { openProfile(decodeURIComponent(m[1])); } catch (e) { console.error(e); }
+    }
+  }
+  window.addEventListener('hashchange', tryOpenProfileFromHash);
+
+  loadPosts().then(tryOpenProfileFromHash);
   subscribeRealtime();
   loadNotifications();
   subscribeNotificationsRealtime();
