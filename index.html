@@ -1903,22 +1903,61 @@
     `).join('');
   }
 
+  // Hapus notifikasi lama dgn kombinasi recipient+actor+type+post yang sama. Dipakai sebelum
+  // insert baru (biar 1 postingan cuma nongol 1 notif per jenis interaksi per orang), dan
+  // dipakai juga buat kasus unlike (hapus tanpa gantiin notif baru sama sekali).
+  async function removeNotification({ recipientName, actorName, type, postId }) {
+    const recipient = normalizeName(recipientName);
+    const actor = normalizeName(actorName);
+    if (!recipient || !actor) return;
+    try {
+      const { error } = await sb.from(NOTIF_TABLE)
+        .delete()
+        .eq('recipient_name', recipient)
+        .eq('actor_name', (actorName || '').trim())
+        .eq('type', type)
+        .eq('post_id', postId);
+      if (error) throw error;
+    } catch (e) {
+      console.error("Gagal menghapus notifikasi dari Supabase", e);
+    }
+    // Update state lokal juga biar panel notif langsung nyocok tanpa nunggu reload/realtime
+    notifications = notifications.filter(n => !(
+      normalizeName(n.recipient_name) === recipient &&
+      normalizeName(n.actor_name) === actor &&
+      n.type === type &&
+      n.post_id === postId
+    ));
+    renderNotifications();
+  }
+
   // Kirim notifikasi baru ke penerima (pemilik postingan / pemilik komentar). Nggak pernah
   // ngirim ke diri sendiri (misal like postingan sendiri) biar nggak spam notif kosong.
+  // Notif lama dgn kombinasi recipient+actor+type+post yang sama dihapus dulu, jadi kalau
+  // orang yang sama like/komen berkali-kali di post yang sama, yang muncul di notif tetap 1.
   async function insertNotification({ recipientName, actorName, type, postId, previewText }) {
     const recipient = normalizeName(recipientName);
     const actor = normalizeName(actorName);
     if (!recipient || recipient === actor) return;
+    await removeNotification({ recipientName, actorName, type, postId });
     try {
-      const { error } = await sb.from(NOTIF_TABLE).insert({
+      const { data, error } = await sb.from(NOTIF_TABLE).insert({
         recipient_name: recipient,
         actor_name: (actorName || '').trim(),
         type,
         post_id: postId,
         preview_text: previewText ? previewText.slice(0, 80) : null,
         is_read: false
-      });
+      }).select().single();
       if (error) throw error;
+      // Kalau kebetulan yang lagi login sekarang adalah si penerima juga (misal buka 2 tab),
+      // langsung update state lokal biar konsisten, gak nunggu event realtime kelar.
+      if (data && normalizeName(usernameInput.value) === recipient) {
+        notifications = notifications.filter(n => n.id !== data.id);
+        notifications.unshift(data);
+        if (notifications.length > NOTIF_LIMIT) notifications.length = NOTIF_LIMIT;
+        renderNotifications();
+      }
     } catch (e) {
       console.error("Gagal mengirim notifikasi ke Supabase", e);
     }
@@ -2010,6 +2049,13 @@
         notifications.unshift(payload.new);
         if (notifications.length > NOTIF_LIMIT) notifications.length = NOTIF_LIMIT;
         renderNotifications();
+      })
+      // Notif yang dihapus (misal gara-gara unlike, atau ke-replace notif baru) juga harus
+      // ilang dari panel orang lain yang lagi buka notif secara real-time.
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: NOTIF_TABLE }, (payload) => {
+        const before = notifications.length;
+        notifications = notifications.filter(n => n.id !== payload.old.id);
+        if (notifications.length !== before) renderNotifications();
       })
       .subscribe();
   }
@@ -2767,6 +2813,9 @@
           btn.classList.add('pop');
           setTimeout(() => btn.classList.remove('pop'), 500);
           insertNotification({ recipientName: post.user, actorName: usernameInput.value, type: 'like', postId: post.id });
+        } else {
+          // Unlike: notif "like" yang sebelumnya udah kekirim harus ikut ilang juga
+          removeNotification({ recipientName: post.user, actorName: usernameInput.value, type: 'like', postId: post.id });
         }
       });
     }
