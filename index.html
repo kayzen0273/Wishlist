@@ -1661,6 +1661,25 @@
     }
   }
 
+  // Hapus satu kartu postingan aja dari DOM (dengan animasi keluar halus), tanpa render()
+  // ulang seluruh feed. Ini penting karena render() ulang bakal ikut membangun ulang semua
+  // <video> di postingan lain yang gak ada hubungannya sama yang dihapus, bikin video yang
+  // lagi diputar kesentak padahal postingannya sendiri gak dihapus.
+  function removePostCard(id){
+    const card = feedEl.querySelector(`.polaroid[data-post-id="${id}"]`);
+    if (card) {
+      card.style.transition = 'opacity .25s ease, transform .25s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.92)';
+      setTimeout(() => {
+        card.remove();
+        emptyState.style.display = posts.length ? 'none' : 'block';
+      }, 250);
+    } else {
+      emptyState.style.display = posts.length ? 'none' : 'block';
+    }
+  }
+
   // Update mading secara live kalau ada orang lain yang posting/komen/like/hapus PAP
   function subscribeRealtime() {
     sb.channel('public:posts')
@@ -1692,8 +1711,9 @@
         updatePostPartial(updated);
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, (payload) => {
+        const existed = posts.some(p => p.id === payload.old.id);
         posts = posts.filter(p => p.id !== payload.old.id);
-        render();
+        if (existed) removePostCard(payload.old.id);
       })
       .subscribe();
   }
@@ -2001,6 +2021,7 @@
       const card = document.createElement('div');
       const entering = firstRender || post.id === justPostedId;
       card.className = 'polaroid' + (entering ? ' card-enter' : '');
+      card.dataset.postId = post.id;
       card.style.setProperty('--rot', `${tinyRotate(post.id)}deg`);
       if(entering){
         card.style.animationDelay = firstRender ? `${index * 0.07}s` : '0s';
@@ -2297,7 +2318,7 @@
       
       showConfirm(async () => {
         posts = posts.filter(p => p.id !== id);
-        render();
+        removePostCard(id);
         try {
           const { error } = await sb.from('posts').delete().eq('id', id);
           if (error) throw error;
