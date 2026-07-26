@@ -1239,7 +1239,7 @@
   }
 
   /* Custom Confirmation Modal */
-  #customConfirmModal {
+  #customConfirmModal, #nameModal {
     display: none;
     position: fixed;
     inset: 0;
@@ -1250,6 +1250,24 @@
     justify-content: center;
     padding: 20px;
     animation: fadeInModal 0.2s ease-out;
+  }
+  #nameModalInput {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 10px 12px;
+    margin-bottom: 18px;
+    border: 2px dashed var(--paper-edge);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.5);
+    color: var(--ink);
+    outline: none;
+    text-align: center;
+  }
+  #nameModalInput:focus {
+    border-color: var(--tape-pink);
   }
   @keyframes fadeInModal {
     from { opacity: 0; }
@@ -1460,6 +1478,20 @@
   </div>
 </div>
 
+<!-- Modal isi nama (wajib sebelum upload) -->
+<div id="nameModal">
+  <div class="confirm-box">
+    <div style="font-size: 40px;">✍️</div>
+    <h3>Siapa Nama Kamu?</h3>
+    <p>Isi nama dulu ya sebelum posting PAP. Nanti nggak perlu diketik lagi kok!</p>
+    <input type="text" id="nameModalInput" placeholder="nama kamu (e.g. jagoan mabar)" maxlength="24">
+    <div class="confirm-btns">
+      <button class="btn-cancel" id="nameModalCancelBtn">Batal</button>
+      <button class="btn-ok" id="nameModalOkBtn">Simpan &amp; Posting</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Container -->
 <div id="toast">Gagal menyimpan data!</div>
 
@@ -1494,6 +1526,48 @@
   const cancelConfirmBtn = document.getElementById('cancelConfirmBtn');
   const okConfirmBtn = document.getElementById('okConfirmBtn');
   let confirmCallback = null;
+
+  // Modal isi nama (wajib sebelum upload)
+  const nameModal = document.getElementById('nameModal');
+  const nameModalInput = document.getElementById('nameModalInput');
+  const nameModalOkBtn = document.getElementById('nameModalOkBtn');
+  const nameModalCancelBtn = document.getElementById('nameModalCancelBtn');
+  let nameModalCallback = null;
+
+  function showNameModal(onSaved) {
+    nameModalInput.value = usernameInput.value.trim();
+    nameModalCallback = onSaved;
+    nameModal.style.display = 'flex';
+    setTimeout(() => nameModalInput.focus(), 50);
+  }
+
+  function hideNameModal() {
+    nameModal.style.display = 'none';
+    nameModalCallback = null;
+  }
+
+  nameModalCancelBtn.addEventListener('click', hideNameModal);
+
+  function confirmNameModal() {
+    const val = nameModalInput.value.trim();
+    if (!val) {
+      nameModalInput.focus();
+      return;
+    }
+    usernameInput.value = val;
+    localStorage.setItem('pap_username', val);
+    const cb = nameModalCallback;
+    hideNameModal();
+    if (cb) cb();
+  }
+
+  nameModalOkBtn.addEventListener('click', confirmNameModal);
+  nameModalInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmNameModal();
+    }
+  });
 
   // Mengambil nama terakhir yang dimasukkan pengguna
   if (localStorage.getItem('pap_username')) {
@@ -2471,20 +2545,8 @@
 
   // ===== STREAMING_CHUNK: Publishing items to storage and rendering... ===== */
   const subpagePostBtnOriginalHtml = subpagePostBtn.innerHTML;
-  subpagePostBtn.addEventListener('click', async () => {
-    if (pendingMedia.length === 0) return;
 
-    // Nama wajib diisi sebelum bisa upload; kalau kosong, minta isi dulu
-    const typedName = usernameInput.value.trim();
-    if (!typedName) {
-      showToast('Isi nama kamu dulu ya sebelum upload! ✍️');
-      usernameInput.focus();
-      usernameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
-    // Simpan nama supaya nggak perlu diinput lagi di lain waktu
-    localStorage.setItem('pap_username', typedName);
-
+  async function doUploadPost() {
     // Pause semua preview video sebelum disimpan
     subpageMediaRow.querySelectorAll('video').forEach(v => {
       v.pause();
@@ -2509,7 +2571,7 @@
       }));
 
       const newRow = {
-        user_name: usernameInput.value.trim() || 'Kang Cilok',
+        user_name: usernameInput.value.trim(),
         media: uploadedMedia,
         title: subpageTitleInput.value.trim(),
         caption: subpageDescInput.value.trim(),
@@ -2537,6 +2599,21 @@
       subpagePostBtn.disabled = false;
       subpagePostBtn.innerHTML = subpagePostBtnOriginalHtml;
     }
+  }
+
+  subpagePostBtn.addEventListener('click', async () => {
+    if (pendingMedia.length === 0) return;
+
+    // Nama wajib diisi sebelum bisa upload; kalau kosong, munculkan modal isi nama dulu
+    const typedName = usernameInput.value.trim();
+    if (!typedName) {
+      showNameModal(() => {
+        doUploadPost();
+      });
+      return;
+    }
+
+    await doUploadPost();
   });
 
   loadPosts();
