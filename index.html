@@ -1672,18 +1672,55 @@
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'posts' }, (payload) => {
         const idx = posts.findIndex(p => p.id === payload.new.id);
         if (idx === -1) return;
-        const keepOpen = posts[idx].open;
-        const keepMenu = posts[idx].menuOpen;
-        posts[idx] = mapRowToPost(payload.new);
-        posts[idx].open = keepOpen;
-        posts[idx].menuOpen = keepMenu;
-        render();
+        const oldPost = posts[idx];
+        const updated = mapRowToPost(payload.new);
+        updated.open = oldPost.open;
+        updated.menuOpen = oldPost.menuOpen;
+        // Pertahankan status "lagi buka form balasan" per komentar, dicocokkan lewat id,
+        // biar gak ke-collapse tiba-tiba pas ada update masuk.
+        const oldReplyOpenMap = new Map(oldPost.comments.map(c => [c.id, c.replyOpen]));
+        updated.comments.forEach(c => {
+          if (oldReplyOpenMap.has(c.id)) c.replyOpen = oldReplyOpenMap.get(c.id);
+        });
+        posts[idx] = updated;
+
+        // Update DOM secara PARSIAL (tombol like + daftar komentar) tanpa render() ulang
+        // seluruh feed. Ini penting: event UPDATE ini juga kepicu balik untuk perubahan
+        // like/komen yang kita buat sendiri (echo dari Supabase), jadi kalau render() ulang
+        // dipanggil di sini, video yang baru aja kita hindari sentuh pas klik like tetap
+        // akan kesentak/reload lewat jalur ini.
+        updatePostPartial(updated);
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'posts' }, (payload) => {
         posts = posts.filter(p => p.id !== payload.old.id);
         render();
       })
       .subscribe();
+  }
+
+  // Update tampilan tombol like & daftar komentar sebuah post tanpa menyentuh media-wrap
+  // sama sekali (jadi <video> yang sedang jalan gak pernah dibangun ulang lewat jalur ini).
+  function updatePostPartial(post){
+    const likeBtn = feedEl.querySelector(`.like-btn[data-id="${post.id}"]`);
+    if (likeBtn) {
+      likeBtn.classList.toggle('liked', post.liked);
+      const svg = likeBtn.querySelector('svg');
+      if (svg) svg.setAttribute('fill', post.liked ? 'currentColor' : 'none');
+      const span = likeBtn.querySelector('span');
+      if (span) span.innerText = post.likes;
+    }
+
+    updateCommentCount(post);
+
+    const commentsEl = feedEl.querySelector(`.comments[data-comments-for="${post.id}"]`);
+    if (commentsEl) {
+      const list = commentsEl.querySelector('.comment-list');
+      if (list) {
+        list.innerHTML = post.comments.length
+          ? post.comments.map(c => renderComment(post.id, c)).join('')
+          : `<div class="comment-empty">belum ada yg komen. garing kress kress...</div>`;
+      }
+    }
   }
 
   // Fungsi menampilkan notifikasi toast
@@ -1836,18 +1873,22 @@
   });
 
   // ===== STREAMING_CHUNK: Templating comments and nested answers... ===== */
-  function renderComment(postId, c){
-    const repliesHtml = c.replies.length
-      ? c.replies.map(r => `
+  function renderReplyItem(postId, commentId, r){
+    return `
         <div class="reply-item">
           <div class="comment-item" style="--accent:${avatarColor(r.user)}"><b>${esc(r.user)}</b> ${esc(r.text)}</div>
           <div class="comment-actions">
-            <button class="mini-like ${r.liked ? 'liked':''}" data-action="like-reply" data-post="${postId}" data-comment="${c.id}" data-reply="${r.id}">
+            <button class="mini-like ${r.liked ? 'liked':''}" data-action="like-reply" data-post="${postId}" data-comment="${commentId}" data-reply="${r.id}">
               ${heartSvg(r.liked)}<span>${r.likes}</span>
             </button>
           </div>
         </div>
-      `).join('')
+      `;
+  }
+
+  function renderComment(postId, c){
+    const repliesHtml = c.replies.length
+      ? c.replies.map(r => renderReplyItem(postId, c.id, r)).join('')
       : '';
 
     return `
@@ -1866,6 +1907,64 @@
         </div>
       </div>
     `;
+  }
+
+  // Update jumlah "N komentar" di meta-row tanpa render() ulang seluruh feed, supaya
+  // video yang sedang jalan di postingan lain (atau postingan yang sama) gak keganggu.
+  function updateCommentCount(post){
+    const el = feedEl.querySelector(`[data-comment-count-for="${post.id}"]`);
+    if(el) el.innerText = `${totalComments(post)} komentar`;
+  }
+
+  // Kirim komentar baru secara parsial: cuma nambah elemen komentar baru ke DOM yang
+  // sudah ada, gak lewat render() ulang total. Ini yang bikin video yang lagi diputar
+  // (di slider foto/video manapun) tetap jalan mulus pas ada yang komen.
+  function submitComment(post, postId, input){
+    const val = input.value.trim();
+    if(!val) return;
+    const newComment = makeComment(usernameInput.value.trim() || 'Kang Cilok', val);
+    post.comments.push(newComment);
+    post.open = true;
+    saveToStorage(post);
+
+    const commentsEl = feedEl.querySelector(`.comments[data-comments-for="${postId}"]`);
+    if(commentsEl){
+      commentsEl.classList.add('open');
+      const list = commentsEl.querySelector('.comment-list');
+      const emptyEl = list.querySelector('.comment-empty');
+      if(emptyEl) emptyEl.remove();
+      list.insertAdjacentHTML('beforeend', renderComment(postId, newComment));
+    }
+    updateCommentCount(post);
+    input.value = '';
+    input.focus();
+  }
+
+  // Sama seperti submitComment tapi untuk balasan (reply) di dalam sebuah komentar.
+  function submitReply(post, c, postId, commentId, input){
+    const val = input.value.trim();
+    if(!val) return;
+    const newReply = makeReply(usernameInput.value.trim() || 'Kang Cilok', val);
+    c.replies.push(newReply);
+    c.replyOpen = true;
+    saveToStorage(post);
+
+    const commentBlock = input.closest('.comment-block');
+    if(commentBlock){
+      let repliesEl = commentBlock.querySelector('.replies');
+      if(!repliesEl){
+        repliesEl = document.createElement('div');
+        repliesEl.className = 'replies';
+        const replyForm = commentBlock.querySelector('.reply-form');
+        commentBlock.insertBefore(repliesEl, replyForm);
+      }
+      repliesEl.insertAdjacentHTML('beforeend', renderReplyItem(postId, commentId, newReply));
+      const replyForm = commentBlock.querySelector('.reply-form');
+      if(replyForm) replyForm.classList.add('open');
+    }
+    updateCommentCount(post);
+    input.value = '';
+    input.focus();
   }
 
   let firstRender = true;
@@ -1975,7 +2074,7 @@
         
         <div class="meta-row">
           <span>${esc(post.time)}</span>
-          <span>${totalComments(post)} komentar</span>
+          <span data-comment-count-for="${post.id}">${totalComments(post)} komentar</span>
         </div>
         <div class="action-row">
           <button class="like-btn ${post.liked ? 'liked':''}" data-id="${post.id}" data-action="like">
@@ -2212,7 +2311,10 @@
 
     if(action === 'toggle-comments'){
       post.open = !post.open;
-      render();
+      // Buka/tutup panel komentar TIDAK perlu render() ulang seluruh feed — cukup toggle
+      // class 'open' langsung di DOM yang udah ada, biar video yang lagi jalan gak keganggu.
+      const commentsEl = feedEl.querySelector(`.comments[data-comments-for="${id}"]`);
+      if(commentsEl) commentsEl.classList.toggle('open', post.open);
       if(post.open){
         const input = feedEl.querySelector(`input[data-comment-input="${id}"]`);
         if(input) input.focus();
@@ -2221,14 +2323,7 @@
 
     if(action === 'send-comment'){
       const input = feedEl.querySelector(`input[data-comment-input="${id}"]`);
-      const val = input.value.trim();
-      if(!val) return;
-      post.comments.push(makeComment(usernameInput.value.trim() || 'Kang Cilok', val));
-      post.open = true;
-      saveToStorage(post);
-      render();
-      const newInput = feedEl.querySelector(`input[data-comment-input="${id}"]`);
-      if(newInput) newInput.focus();
+      submitComment(post, id, input);
     }
 
     if(action === 'like-comment'){
@@ -2277,7 +2372,10 @@
       const c = post.comments.find(x => x.id === commentId);
       if(!c) return;
       c.replyOpen = !c.replyOpen;
-      render();
+      // Sama kayak toggle-comments: cukup toggle class di DOM, gak usah render() ulang.
+      const commentBlock = btn.closest('.comment-block');
+      const replyForm = commentBlock ? commentBlock.querySelector('.reply-form') : null;
+      if(replyForm) replyForm.classList.toggle('open', c.replyOpen);
       if(c.replyOpen){
         const input = feedEl.querySelector(`input[data-reply-input="${id}:${commentId}"]`);
         if(input) input.focus();
@@ -2289,14 +2387,7 @@
       const c = post.comments.find(x => x.id === commentId);
       if(!c) return;
       const input = feedEl.querySelector(`input[data-reply-input="${id}:${commentId}"]`);
-      const val = input.value.trim();
-      if(!val) return;
-      c.replies.push(makeReply(usernameInput.value.trim() || 'Kang Cilok', val));
-      c.replyOpen = true;
-      saveToStorage(post);
-      render();
-      const newInput = feedEl.querySelector(`input[data-reply-input="${id}:${commentId}"]`);
-      if(newInput) newInput.focus();
+      submitReply(post, c, id, commentId, input);
     }
   });
 
@@ -2359,31 +2450,18 @@
   feedEl.addEventListener('keydown', (e) => {
     if(e.key === 'Enter' && e.target.matches('input[data-comment-input]')){
       const id = Number(e.target.dataset.commentInput);
-      const val = e.target.value.trim();
-      if(!val) return;
       const post = posts.find(p => p.id === id);
-      post.comments.push(makeComment(usernameInput.value.trim() || 'Kang Cilok', val));
-      post.open = true;
-      saveToStorage(post);
-      render();
-      const newInput = feedEl.querySelector(`input[data-comment-input="${id}"]`);
-      if(newInput) newInput.focus();
+      if(!post) return;
+      submitComment(post, id, e.target);
     }
 
     if(e.key === 'Enter' && e.target.matches('input[data-reply-input]')){
       const [postId, commentId] = e.target.dataset.replyInput.split(':').map(Number);
-      const val = e.target.value.trim();
-      if(!val) return;
       const post = posts.find(p => p.id === postId);
       if(!post) return;
       const c = post.comments.find(x => x.id === commentId);
       if(!c) return;
-      c.replies.push(makeReply(usernameInput.value.trim() || 'Kang Cilok', val));
-      c.replyOpen = true;
-      saveToStorage(post);
-      render();
-      const newInput = feedEl.querySelector(`input[data-reply-input="${postId}:${commentId}"]`);
-      if(newInput) newInput.focus();
+      submitReply(post, c, postId, commentId, e.target);
     }
   });
 
