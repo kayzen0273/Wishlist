@@ -1688,7 +1688,7 @@
     display:flex;
     align-items:flex-start;
     gap:18px;
-    margin:10px 0 18px;
+    margin:10px 0 16px;
   }
   .profile-avatar{
     width:82px;
@@ -1710,11 +1710,17 @@
     object-fit:cover;
     display:block;
   }
+  .profile-name-stats{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding-top:4px;
+  }
   .profile-stats{
     display:flex;
-    gap:22px;
-    margin-top:10px;
-    flex:1;
+    gap:20px;
   }
   .profile-stat{
     display:flex;
@@ -1732,12 +1738,13 @@
   .profile-fullname{
     font-weight:800;
     font-size:16px;
-    margin-bottom:2px;
+    margin-bottom:10px;
+    word-break:break-word;
   }
   .profile-username-sub{
-    color:#9a9aa2;
-    font-size:13.5px;
-    margin-bottom:14px;
+    /* Handle-nya udah ditampilin di judul halaman (profile-header-handle) di atas,
+       jadi baris ini disembunyiin biar nggak dobel kayak di referensi desain. */
+    display:none;
   }
   .profile-btn-row{
     display:flex;
@@ -2079,13 +2086,15 @@
   <div class="profile-content">
     <div class="profile-top-row">
       <div class="profile-avatar" id="profileAvatarBig">?</div>
-      <div class="profile-stats">
-        <div class="profile-stat"><b id="profileStatPosts">0</b><span>postingan</span></div>
-        <div class="profile-stat"><b id="profileStatFollowers">0</b><span>pengikut</span></div>
-        <div class="profile-stat"><b id="profileStatFollowing">0</b><span>mengikuti</span></div>
+      <div class="profile-name-stats">
+        <div class="profile-fullname" id="profileFullName">&nbsp;</div>
+        <div class="profile-stats">
+          <div class="profile-stat"><b id="profileStatPosts">0</b><span>postingan</span></div>
+          <div class="profile-stat"><b id="profileStatFollowers">0</b><span>pengikut</span></div>
+          <div class="profile-stat"><b id="profileStatFollowing">0</b><span>mengikuti</span></div>
+        </div>
       </div>
     </div>
-    <div class="profile-fullname" id="profileFullName">&nbsp;</div>
     <div class="profile-username-sub" id="profileUsernameSub">@username</div>
 
     <div class="profile-btn-row" id="profileBtnRow"></div>
@@ -2154,6 +2163,11 @@
 <!-- Toast Container -->
 <div id="toast">Gagal menyimpan data!</div>
 
+<!-- Panel debug SEMENTARA: buat lacak kenapa foto profil/nama lengkap nggak
+     tersimpan. Nampilin persis apa yang dikirim/diterima dari Supabase, langsung
+     di layar HP (nggak perlu buka console). Aman dihapus nanti kalau udah kelar. -->
+<div id="papDebugPanel" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;max-height:40vh;overflow-y:auto;background:rgba(0,0,0,0.9);color:#0f0;font-family:monospace;font-size:11px;line-height:1.4;padding:8px;border-radius:8px;z-index:99999;white-space:pre-wrap;word-break:break-all;"></div>
+
 <!-- ===== STREAMING_CHUNK: Processing state and storage triggers... ===== */ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2163,6 +2177,27 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVveG5nZ29ndmVseXJnaWlta21yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5NzQyMjAsImV4cCI6MjEwMDU1MDIyMH0.jqoWwUeiVkTYTg_wGMkPpDluhtIdcLXLcK4ng8T2fiE';
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const MEDIA_BUCKET = 'pap-media';
+
+  // ===== Panel debug sementara (lacak bug foto profil/nama lengkap) =====
+  // Tap-tahan (long-press) 3 detik di mana aja buat nampilin/nyembunyiin panelnya.
+  const papDebugPanel = document.getElementById('papDebugPanel');
+  function debugLog(label, obj) {
+    try {
+      const line = `[${new Date().toLocaleTimeString()}] ${label}: ${JSON.stringify(obj)}`;
+      console.log(line);
+      if (papDebugPanel) {
+        papDebugPanel.textContent = line + '\n\n' + papDebugPanel.textContent;
+      }
+    } catch (e) { console.error('debugLog error', e); }
+  }
+  let debugPressTimer = null;
+  document.addEventListener('touchstart', () => {
+    debugPressTimer = setTimeout(() => {
+      if (papDebugPanel) papDebugPanel.style.display = papDebugPanel.style.display === 'none' ? 'block' : 'none';
+    }, 3000);
+  });
+  document.addEventListener('touchend', () => clearTimeout(debugPressTimer));
+  document.addEventListener('touchmove', () => clearTimeout(debugPressTimer));
 
   // ===== Kunci scroll background pas overlay full-page (halaman profil / halaman
   // bikin postingan) lagi kebuka =====
@@ -2816,6 +2851,7 @@
       if (currentProfileUsername !== key) return; // udah pindah/nutup profil pas nunggu
 
       const accRows = accRes.data || [];
+      debugLog('LOAD profil (' + key + ')', { accRows, accErr: accRes.error });
       const acc = accRows.find(r => r.full_name || r.avatar_url) || accRows[0] || null;
       const handle = (acc && acc.display_name) || rawUsername.trim();
       profileHeaderHandle.innerText = `@${handle}`;
@@ -2913,6 +2949,7 @@
         avatarUrl = pub.publicUrl;
       }
       const fullName = editFullNameInput.value.trim();
+      debugLog('SIMPAN mulai', { deviceId, me, fullName, avatarUrl });
 
       // Penting: .update() Supabase itu NGGAK ngelempar error walaupun baris yang
       // di-update ternyata 0 (misal baris akun buat device ini belum sempet kebuat,
@@ -2929,6 +2966,7 @@
         .eq('device_id', deviceId)
         .select('username');
       if (error) throw error;
+      debugLog('UPDATE by device_id hasil', { updRows });
 
       if (!updRows || updRows.length === 0) {
         const { data: existingRow, error: selErr } = await sb
@@ -2937,6 +2975,7 @@
           .eq('username', me)
           .maybeSingle();
         if (selErr) throw selErr;
+        debugLog('Cek existingRow by username', { existingRow, selErr });
 
         if (existingRow) {
           const { error: updByNameErr } = await sb
@@ -2944,6 +2983,7 @@
             .update({ full_name: fullName || null, avatar_url: avatarUrl, device_id: deviceId })
             .eq('username', me);
           if (updByNameErr) throw updByNameErr;
+          debugLog('UPDATE by username selesai', { updByNameErr });
         } else {
           const { error: insErr2 } = await sb
             .from(ACCOUNTS_TABLE)
@@ -2955,8 +2995,17 @@
               avatar_url: avatarUrl
             });
           if (insErr2) throw insErr2;
+          debugLog('INSERT baru selesai', { insErr2 });
         }
       }
+
+      // Verifikasi: baca ulang langsung dari database buat mastiin datanya BENERAN
+      // ke-tulis (bukan cuma percaya nggak ada error).
+      const { data: verifyRows, error: verifyErr } = await sb
+        .from(ACCOUNTS_TABLE)
+        .select('username, device_id, full_name, avatar_url')
+        .eq('username', me);
+      debugLog('VERIFIKASI setelah simpan', { verifyRows, verifyErr });
 
       myAccountCache.full_name = fullName || null;
       myAccountCache.avatar_url = avatarUrl;
