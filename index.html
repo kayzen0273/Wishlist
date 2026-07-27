@@ -36,7 +36,7 @@
       linear-gradient(160deg, var(--cork) 0%, var(--cork-dark) 100%);
     background-attachment:fixed;
     min-height:100vh;
-    padding-bottom:80px;
+    padding-bottom:96px;
     position: relative;
     overflow-x: hidden;
   }
@@ -1581,6 +1581,194 @@
     .notif-btn{ top:14px; right:12px; width:40px; height:40px; }
   }
 
+  /* ===== Nav bar bawah (Home / Cari / Tambah / Profil) ===== */
+  .bottom-nav{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    z-index:65;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    max-width:640px;
+    margin:0 auto;
+    background:var(--paper);
+    border-top:2px solid var(--paper-edge);
+    box-shadow:0 -4px 14px rgba(0,0,0,0.25);
+    padding:6px 10px calc(6px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav::before{
+    content:"";
+    position:absolute;
+    top:-10px; left:50%;
+    transform:translateX(-50%) rotate(-1.5deg);
+    width:86px; height:20px;
+    background-color:var(--tape-blue);
+    background-image:radial-gradient(rgba(255,255,255,0.6) 2px, transparent 2px);
+    background-size:9px 9px;
+    opacity:0.9;
+    box-shadow:0 2px 4px rgba(0,0,0,0.2);
+    pointer-events:none;
+  }
+  .bnav-btn{
+    position:relative;
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:46px;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:transform .15s ease, color .15s ease;
+  }
+  .bnav-btn svg{ width:23px; height:23px; }
+  .bnav-btn:active{ transform:scale(0.88); }
+  .bnav-btn.active{ color:var(--ink); }
+  .bnav-btn.active svg{ stroke-width:2.6; }
+  .bnav-add-icon{
+    width:38px; height:38px;
+    border-radius:12px;
+    background:var(--pin-red);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 3px 8px rgba(228,87,46,0.45), 0 2px 0 rgba(255,255,255,0.28) inset;
+    transform:rotate(-4deg);
+    transition:transform .15s ease;
+  }
+  .bnav-btn-add:active .bnav-add-icon{ transform:rotate(-4deg) scale(0.86); }
+  .bnav-add-icon svg{ width:20px; height:20px; stroke:#fff; }
+  .bnav-avatar{
+    width:26px; height:26px;
+    border-radius:50%;
+    background:var(--tape-yellow);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-weight:800;
+    font-size:10.5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    border:2px solid transparent;
+    transition:border-color .15s ease;
+  }
+  .bnav-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .bnav-btn-profile.active .bnav-avatar{ border-color:var(--ink); }
+
+  /* ===== Panel Cari (bottom sheet) ===== */
+  .search-overlay{
+    position:fixed; inset:0;
+    background:rgba(58,42,28,0.5);
+    backdrop-filter:blur(2px);
+    z-index:70;
+    display:none; opacity:0;
+    transition:opacity .2s ease;
+  }
+  .search-overlay.open{ display:block; }
+  .search-overlay.show{ opacity:1; }
+  .search-panel{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    max-height:78vh;
+    background:var(--paper);
+    z-index:71;
+    border-radius:18px 18px 0 0;
+    box-shadow:0 -8px 30px rgba(0,0,0,0.35);
+    display:flex;
+    flex-direction:column;
+    transform:translateY(100%);
+    transition:transform .3s cubic-bezier(.32,.72,.35,1);
+  }
+  .search-panel.open{ transform:translateY(0); }
+  .search-header{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:14px 14px 10px;
+    border-bottom:1px dashed var(--paper-edge);
+    flex-shrink:0;
+  }
+  .search-input-wrap{
+    flex:1;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#fff;
+    border:2px solid var(--paper-edge);
+    border-radius:999px;
+    padding:8px 12px;
+  }
+  .search-input-wrap svg{ width:17px; height:17px; color:var(--ink-soft); flex-shrink:0; }
+  .search-input-wrap input{
+    flex:1;
+    min-width:0;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .search-clear-btn{
+    border:none; background:none; color:var(--ink-soft);
+    font-size:17px; line-height:1; cursor:pointer; display:none; padding:2px 3px; flex-shrink:0;
+  }
+  .search-clear-btn.show{ display:block; }
+  .search-close-btn{
+    border:none; background:none; color:var(--ink); font-weight:700;
+    font-family:'Plus Jakarta Sans', sans-serif; font-size:13.5px; cursor:pointer;
+    padding:6px 2px; flex-shrink:0;
+  }
+  .search-results{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:4px 8px 22px;
+    overscroll-behavior:contain;
+  }
+  .search-section-label{
+    font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--ink-soft); padding:12px 10px 4px;
+  }
+  .search-user-item, .search-post-item{
+    width:100%;
+    display:flex; align-items:center; gap:10px;
+    padding:8px 10px; border-radius:10px;
+    border:none; background:none; text-align:left; cursor:pointer;
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+  .search-user-item:hover, .search-post-item:hover{ background:rgba(58,42,28,0.06); }
+  .search-user-avatar{
+    width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:13px; color:var(--ink);
+  }
+  .search-user-name{ font-size:14px; font-weight:600; color:var(--ink); }
+  .search-post-thumb{
+    width:44px; height:44px; border-radius:8px; overflow:hidden; flex-shrink:0;
+    background:var(--paper-edge);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px;
+  }
+  .search-post-thumb img, .search-post-thumb video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .search-post-info{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .search-post-user{ font-size:12.5px; font-weight:700; color:var(--ink); }
+  .search-post-caption{ font-size:12.5px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .search-empty{
+    padding:40px 20px; text-align:center; color:var(--ink-soft); font-size:13.5px;
+  }
+
+  /* Efek pulse pas tombol "Tambah" di nav bawah nyorot form compose */
+  @keyframes composePulse{
+    0%{ box-shadow:0 12px 24px rgba(0,0,0,0.30), 7px 9px 0 -3px var(--paper-edge), -7px 10px 0 -3px var(--tape-blue), 0 0 0 0 rgba(228,87,46,0); }
+    40%{ box-shadow:0 12px 24px rgba(0,0,0,0.30), 7px 9px 0 -3px var(--paper-edge), -7px 10px 0 -3px var(--tape-blue), 0 0 0 6px rgba(228,87,46,0.35); }
+    100%{ box-shadow:0 12px 24px rgba(0,0,0,0.30), 7px 9px 0 -3px var(--paper-edge), -7px 10px 0 -3px var(--tape-blue), 0 0 0 0 rgba(228,87,46,0); }
+  }
+  .compose.compose-pulse{ animation:composePulse .8s ease; }
+
   /* ===== Nama yang bisa diklik (buka profil) ===== */
   .clickable-name{
     background:none;
@@ -1633,13 +1821,13 @@
   .profile-overlay{
     position:fixed;
     inset:0;
-    background:#101014;
+    background:var(--paper);
     z-index:600;
     display:flex;
     flex-direction:column;
     transform:translateY(100%);
     transition:transform .35s cubic-bezier(0.32,0.94,0.6,1);
-    color:#f2f2f2;
+    color:var(--ink);
     font-family:'Plus Jakarta Sans', sans-serif;
   }
   .profile-overlay.open{
@@ -1649,9 +1837,9 @@
     .profile-overlay{
       max-width:480px;
       margin:0 auto;
-      border-left:2px solid #26262c;
-      border-right:2px solid #26262c;
-      box-shadow:0 -5px 30px rgba(0,0,0,0.35);
+      border-left:2px solid var(--paper-edge);
+      border-right:2px solid var(--paper-edge);
+      box-shadow:0 -5px 30px rgba(0,0,0,0.25);
       border-radius:20px 20px 0 0;
       height:94vh;
       top:6vh;
@@ -1663,7 +1851,9 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:16px 18px 8px;
+    padding:16px 18px;
+    border-bottom:2px dashed var(--paper-edge);
+    background:var(--paper);
     flex-shrink:0;
   }
   .profile-back-btn{
@@ -1671,39 +1861,153 @@
     border:none;
     cursor:pointer;
     padding:6px;
-    color:#f2f2f2;
+    color:var(--ink);
     display:flex;
     align-items:center;
     justify-content:center;
+    transition:transform .2s;
   }
+  .profile-back-btn:hover{ transform:scale(1.1); }
   .profile-header-handle{
     font-weight:800;
     font-size:17px;
+    letter-spacing:-0.2px;
   }
   .profile-content{
     flex:1;
     overflow-y:auto;
-    padding:4px 20px 30px;
+    padding:16px 20px 30px;
   }
+
+  .profile-menu-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:6px;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    visibility:hidden;
+    transition:transform .2s;
+  }
+  .profile-menu-btn:hover{ transform:rotate(90deg); }
+  .profile-menu-btn.show{ visibility:visible; }
+
+  /* ===== Halaman "Pengaturan dan aktivitas" (subpage dari profil) ===== */
+  .settings-overlay{
+    position:fixed;
+    inset:0;
+    background:var(--paper);
+    z-index:650;
+    display:flex;
+    flex-direction:column;
+    transform:translateX(100%);
+    transition:transform .3s cubic-bezier(0.32,0.94,0.6,1);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+  .settings-overlay.open{ transform:translateX(0); }
+  @media (min-width:641px){
+    .settings-overlay{
+      max-width:480px;
+      margin:0 auto;
+      border-left:2px solid var(--paper-edge);
+      border-right:2px solid var(--paper-edge);
+      box-shadow:0 -5px 30px rgba(0,0,0,0.25);
+      border-radius:20px 20px 0 0;
+      height:94vh;
+      top:6vh;
+      bottom:0;
+      inset:auto 0 0 0;
+    }
+  }
+  .settings-header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:16px 18px;
+    border-bottom:2px dashed var(--paper-edge);
+    flex-shrink:0;
+  }
+  .settings-back-btn{
+    background:none; border:none; cursor:pointer; padding:6px;
+    color:var(--ink); display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition:transform .2s;
+  }
+  .settings-back-btn:hover{ transform:scale(1.1); }
+  .settings-title{ font-weight:800; font-size:17px; }
+  .settings-search-wrap{
+    margin:14px 18px 6px;
+    display:flex; align-items:center; gap:8px;
+    background:#fff; border-radius:999px; padding:11px 16px;
+    border:2px dashed var(--paper-edge);
+    flex-shrink:0;
+  }
+  .settings-search-wrap svg{ width:17px; height:17px; color:var(--ink-soft); flex-shrink:0; }
+  .settings-search-wrap input{
+    flex:1; min-width:0; border:none; outline:none; background:transparent;
+    font-family:'Plus Jakarta Sans', sans-serif; font-size:14.5px; color:var(--ink);
+  }
+  .settings-search-wrap input::placeholder{ color:#b6a68c; }
+  .settings-content{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding:6px 0 30px;
+  }
+  .settings-section-label{
+    font-size:12.5px; font-weight:800; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.3px;
+    padding:18px 18px 6px;
+  }
+  .settings-section-divider{
+    height:2px;
+    margin:10px 18px;
+    background-image:repeating-linear-gradient(90deg, var(--paper-edge) 0 8px, transparent 8px 14px);
+  }
+  .settings-item{
+    width:100%; display:flex; align-items:center; gap:14px;
+    padding:13px 18px; border:none; background:none; text-align:left; cursor:pointer;
+    font-family:'Plus Jakarta Sans', sans-serif; color:var(--ink);
+  }
+  .settings-item:active{ background:rgba(58,42,28,0.06); }
+  .settings-item-icon{
+    width:24px; height:24px; flex-shrink:0; color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .settings-item-icon svg{ width:22px; height:22px; }
+  .settings-item-text{ flex:1; min-width:0; }
+  .settings-item-title{ font-size:15px; font-weight:700; }
+  .settings-item-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; line-height:1.35; }
+  .settings-item-chevron{ width:18px; height:18px; color:var(--ink-soft); flex-shrink:0; }
+  .settings-item.danger .settings-item-title{ color:var(--pin-red); }
+  .settings-item.danger .settings-item-icon{ color:var(--pin-red); }
+  .settings-empty{ padding:40px 20px; text-align:center; color:var(--ink-soft); font-size:13.5px; }
   .profile-top-row{
     display:flex;
     align-items:flex-start;
     gap:18px;
-    margin:10px 0 16px;
+    margin:4px 0 18px;
   }
   .profile-avatar{
-    width:82px;
-    height:82px;
+    width:84px;
+    height:84px;
     border-radius:50%;
-    background:#2b2b32;
-    color:#f2f2f2;
+    background:var(--tape-yellow);
+    color:var(--ink);
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:26px;
+    font-size:28px;
     font-weight:800;
+    font-family:'Plus Jakarta Sans', sans-serif;
     flex-shrink:0;
     overflow:hidden;
+    border:3px solid #fff;
+    box-shadow:0 4px 12px rgba(58,42,28,0.25), 0 0 0 2px var(--paper-edge);
+    transform:rotate(-3deg);
   }
   .profile-avatar img{
     width:100%;
@@ -1729,18 +2033,20 @@
     font-size:15px;
   }
   .profile-stat b{
-    font-size:17px;
+    font-size:18px;
     font-weight:800;
+    color:var(--ink);
   }
   .profile-stat span{
-    color:#9a9aa2;
+    color:var(--ink-soft);
     font-size:12.5px;
   }
   .profile-fullname{
     font-weight:800;
-    font-size:16px;
+    font-size:17px;
     margin-bottom:10px;
     word-break:break-word;
+    color:var(--ink);
   }
   .profile-username-sub{
     /* Handle-nya udah ditampilin di judul halaman (profile-header-handle) di atas,
@@ -1749,35 +2055,43 @@
   }
   .profile-btn-row{
     display:flex;
-    gap:8px;
-    margin-bottom:20px;
+    gap:10px;
+    margin-bottom:24px;
   }
   .profile-btn{
     flex:1;
-    padding:9px 0;
-    border-radius:10px;
-    border:none;
-    background:#26262e;
-    color:#f2f2f2;
-    font-weight:700;
+    padding:10px 0;
+    border-radius:999px;
+    border:2px solid var(--paper-edge);
+    background:#fff;
+    color:var(--ink);
+    font-weight:800;
     font-size:14.5px;
     cursor:pointer;
     font-family:'Plus Jakarta Sans', sans-serif;
+    transition:transform .15s ease, filter .15s ease;
   }
   .profile-btn:active{
-    opacity:0.8;
+    transform:translateY(2px);
   }
   .profile-btn-follow{
-    background:#3b6bf5;
+    background:var(--pin-red);
+    border-color:var(--pin-red);
+    color:#fff;
+    box-shadow:0 3px 0 #a83a1b;
+  }
+  .profile-btn-follow:active{
+    box-shadow:none;
   }
   .profile-btn-following{
-    background:#26262e;
-    border:1px solid #3a3a42;
+    background:#fff;
+    border:2px dashed var(--paper-edge);
+    color:var(--ink);
   }
   .profile-tabs{
     display:flex;
-    border-top:1px solid #26262c;
-    border-bottom:1px solid #26262c;
+    border-top:2px dashed var(--paper-edge);
+    border-bottom:2px dashed var(--paper-edge);
     margin-bottom:2px;
   }
   .profile-tab{
@@ -1788,12 +2102,14 @@
     padding:12px 0;
     background:none;
     border:none;
-    color:#6a6a72;
+    color:var(--ink-soft);
     cursor:pointer;
+    transition:color .15s ease;
   }
   .profile-tab.active{
-    color:#f2f2f2;
-    border-bottom:2px solid #f2f2f2;
+    color:var(--ink);
+    border-bottom:2px solid var(--pin-red);
+    margin-bottom:-2px;
   }
   .profile-tab svg{
     width:22px;
@@ -1802,17 +2118,22 @@
   .profile-grid{
     display:grid;
     grid-template-columns:repeat(3, 1fr);
-    gap:3px;
-    margin-top:8px;
+    gap:2px;
+    margin-top:10px;
   }
   .profile-grid-item{
     position:relative;
     aspect-ratio:1;
-    background:#1c1c22;
+    background:var(--paper-edge);
     overflow:hidden;
     cursor:pointer;
     border:none;
     padding:0;
+    border-radius:0;
+    transition:transform .15s ease;
+  }
+  .profile-grid-item:active{
+    transform:scale(0.96);
   }
   .profile-grid-item img,
   .profile-grid-item video{
@@ -1833,7 +2154,7 @@
   .profile-empty-grid{
     grid-column:1/-1;
     text-align:center;
-    color:#6a6a72;
+    color:var(--ink-soft);
     padding:40px 10px;
     font-size:14px;
   }
@@ -1851,24 +2172,32 @@
     display:none;
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,0.55);
+    background:rgba(58, 42, 28, 0.6);
+    backdrop-filter:blur(4px);
     z-index:700;
     align-items:center;
     justify-content:center;
     padding:20px;
   }
   .edit-profile-box{
-    background:#18181d;
-    color:#f2f2f2;
-    border-radius:18px;
-    padding:22px 20px;
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:14px;
+    padding:24px 20px;
     width:100%;
     max-width:340px;
     font-family:'Plus Jakarta Sans', sans-serif;
     text-align:center;
+    box-shadow:
+      0 12px 28px rgba(0,0,0,0.35),
+      0 2px 0 rgba(255,255,255,0.5) inset,
+      5px 7px 0 var(--paper-edge);
+    border:2px solid var(--paper-edge);
+    transform:rotate(-1deg);
+    animation:popModal 0.3s cubic-bezier(.34,1.56,.64,1) both;
   }
   .edit-profile-box h3{
-    font-size:17px;
+    font-size:19px;
     font-weight:800;
     margin-bottom:16px;
   }
@@ -1876,17 +2205,23 @@
     width:88px;
     height:88px;
     border-radius:50%;
-    background:#2b2b32;
-    margin:0 auto 14px;
+    background:var(--tape-yellow);
+    margin:0 auto 16px;
     display:flex;
     align-items:center;
     justify-content:center;
     font-size:28px;
     font-weight:800;
+    color:var(--ink);
     cursor:pointer;
     overflow:hidden;
     position:relative;
-    border:2px dashed #3a3a42;
+    border:3px solid #fff;
+    box-shadow:0 4px 12px rgba(58,42,28,0.25), 0 0 0 2px var(--paper-edge);
+    transition:transform .2s ease;
+  }
+  .edit-avatar-picker:hover{
+    transform:scale(1.03);
   }
   .edit-avatar-picker img{
     width:100%;
@@ -1899,43 +2234,66 @@
     bottom:0;
     left:0;
     right:0;
-    background:rgba(0,0,0,0.55);
+    background:rgba(58,42,28,0.7);
+    color:#fff;
     font-size:10.5px;
+    font-weight:700;
     padding:3px 0;
   }
   #editFullNameInput{
     width:100%;
-    background:#0f0f13;
-    border:1px solid #3a3a42;
-    border-radius:10px;
+    box-sizing:border-box;
+    background:rgba(255,255,255,0.5);
+    border:2px dashed var(--paper-edge);
+    border-radius:8px;
     padding:10px 12px;
-    color:#f2f2f2;
+    color:var(--ink);
     font-size:15px;
+    font-weight:600;
     font-family:'Plus Jakarta Sans', sans-serif;
-    margin-bottom:16px;
+    margin-bottom:18px;
     outline:none;
+    text-align:center;
+    transition:border-color .15s ease;
+  }
+  #editFullNameInput:focus{
+    border-color:var(--tape-pink);
   }
   .edit-profile-btns{
     display:flex;
-    gap:8px;
+    gap:10px;
   }
   .edit-profile-btns button{
     flex:1;
     padding:10px 0;
-    border-radius:10px;
+    border-radius:999px;
     border:none;
     font-weight:700;
     font-size:14.5px;
     cursor:pointer;
     font-family:'Plus Jakarta Sans', sans-serif;
+    transition:transform .15s ease;
+  }
+  .edit-profile-btns button:active{
+    transform:translateY(2px);
   }
   #editProfileCancelBtn{
-    background:#26262e;
-    color:#f2f2f2;
+    background:#e9e0cc;
+    color:var(--ink);
+  }
+  #editProfileCancelBtn:hover{
+    background:#dfd5be;
   }
   #editProfileSaveBtn{
-    background:#3b6bf5;
+    background:var(--pin-red);
     color:#fff;
+    box-shadow:0 3px 0 #a83a1b;
+  }
+  #editProfileSaveBtn:hover{
+    filter:brightness(1.05);
+  }
+  #editProfileSaveBtn:active{
+    box-shadow:none;
   }
 </style>
 </head>
@@ -1966,6 +2324,53 @@
   </div>
   <div class="notif-list" id="notifList">
     <div class="notif-empty" id="notifEmpty">isi nama kamu dulu ya, biar notifikasinya bisa muncul di sini~ 🔔</div>
+  </div>
+</div>
+
+<!-- Nav bar bawah -->
+<nav class="bottom-nav" id="bottomNav" aria-label="Navigasi utama">
+  <button type="button" class="bnav-btn active" id="bnavHomeBtn" data-nav="home" aria-label="Beranda">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 11.5 12 4l9 7.5"></path>
+      <path d="M5.5 10v9.5a1 1 0 0 0 1 1H17.5a1 1 0 0 0 1-1V10"></path>
+      <path d="M9.5 20.5v-6h5v6"></path>
+    </svg>
+  </button>
+  <button type="button" class="bnav-btn" id="bnavSearchBtn" data-nav="search" aria-label="Cari">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"></circle>
+      <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+    </svg>
+  </button>
+  <button type="button" class="bnav-btn bnav-btn-add" id="bnavAddBtn" data-nav="add" aria-label="Tambah postingan">
+    <span class="bnav-add-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </span>
+  </button>
+  <button type="button" class="bnav-btn bnav-btn-profile" id="bnavProfileBtn" data-nav="profile" aria-label="Profil">
+    <span class="bnav-avatar" id="bnavAvatar">?</span>
+  </button>
+</nav>
+
+<!-- Panel Cari -->
+<div class="search-overlay" id="searchOverlay"></div>
+<div class="search-panel" id="searchPanel">
+  <div class="search-header">
+    <div class="search-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Cari nama atau postingan..." autocomplete="off">
+      <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Bersihkan">×</button>
+    </div>
+    <button type="button" class="search-close-btn" id="searchCloseBtn">Batal</button>
+  </div>
+  <div class="search-results" id="searchResults">
+    <div class="search-empty" id="searchEmpty">ketik nama atau kata kunci buat mulai nyari~ 🔍</div>
   </div>
 </div>
 
@@ -2081,7 +2486,13 @@
       </svg>
     </button>
     <div class="profile-header-handle" id="profileHeaderHandle">@username</div>
-    <div style="width:30px;"></div>
+    <button class="profile-menu-btn" id="profileMenuBtn" aria-label="Pengaturan dan aktivitas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="7" x2="20" y2="7"></line>
+        <line x1="4" y1="12" x2="20" y2="12"></line>
+        <line x1="4" y1="17" x2="20" y2="17"></line>
+      </svg>
+    </button>
   </div>
 
   <div class="profile-content">
@@ -2113,6 +2524,73 @@
     </div>
 
     <div class="profile-grid" id="profileGrid"></div>
+  </div>
+</div>
+
+<!-- Subpage Pengaturan dan aktivitas (dibuka lewat ikon garis 3 di halaman profil sendiri) -->
+<div id="settingsOverlay" class="settings-overlay">
+  <div class="settings-header">
+    <button class="settings-back-btn" id="settingsBackBtn" aria-label="Kembali">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    <div class="settings-title">Pengaturan dan aktivitas</div>
+  </div>
+
+  <div class="settings-search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input type="text" id="settingsSearchInput" placeholder="Cari" autocomplete="off">
+  </div>
+
+  <div class="settings-content" id="settingsContent">
+    <div class="settings-section-label">Akun kamu</div>
+    <button type="button" class="settings-item" data-settings-action="edit-profile" data-search="edit profil ganti foto">
+      <span class="settings-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
+      <span class="settings-item-text">
+        <span class="settings-item-title">Edit profil</span>
+        <span class="settings-item-sub">Ganti foto, nama lengkap</span>
+      </span>
+      <svg class="settings-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </button>
+    <button type="button" class="settings-item" data-settings-action="change-username" data-search="ganti nama pengguna username">
+      <span class="settings-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c0-4 4-7 8-7s8 3 8 7"></path><circle cx="12" cy="7" r="4"></circle><path d="M2 8l3 3-3 3"></path></svg></span>
+      <span class="settings-item-text">
+        <span class="settings-item-title">Ganti nama pengguna</span>
+        <span class="settings-item-sub">Nama yang dipakai buat mading</span>
+      </span>
+      <svg class="settings-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </button>
+
+    <div class="settings-section-divider"></div>
+
+    <div class="settings-section-label">Gimana kamu pakai PAP</div>
+    <button type="button" class="settings-item" data-settings-action="notifications" data-search="notifikasi lonceng">
+      <span class="settings-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></span>
+      <span class="settings-item-text">
+        <span class="settings-item-title">Notifikasi</span>
+      </span>
+      <svg class="settings-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </button>
+    <button type="button" class="settings-item" data-settings-action="about" data-search="tentang pap mading">
+      <span class="settings-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>
+      <span class="settings-item-text">
+        <span class="settings-item-title">Tentang PAP.</span>
+      </span>
+      <svg class="settings-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </button>
+
+    <div class="settings-section-divider"></div>
+
+    <div class="settings-section-label">Akun</div>
+    <button type="button" class="settings-item danger" data-settings-action="delete-account" data-search="hapus akun keluar">
+      <span class="settings-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg></span>
+      <span class="settings-item-text">
+        <span class="settings-item-title">Hapus akun</span>
+      </span>
+    </button>
+    <div class="settings-empty" id="settingsEmpty" style="display:none;">nggak ada yang cocok nih 🔍</div>
   </div>
 </div>
 
@@ -2226,6 +2704,24 @@
   const notifList = document.getElementById('notifList');
   const notifEmpty = document.getElementById('notifEmpty');
 
+  // Elemen Nav Bar Bawah
+  const bottomNav = document.getElementById('bottomNav');
+  const bnavHomeBtn = document.getElementById('bnavHomeBtn');
+  const bnavSearchBtn = document.getElementById('bnavSearchBtn');
+  const bnavAddBtn = document.getElementById('bnavAddBtn');
+  const bnavProfileBtn = document.getElementById('bnavProfileBtn');
+  const bnavAvatar = document.getElementById('bnavAvatar');
+
+  // Elemen Panel Cari
+  const searchOverlay = document.getElementById('searchOverlay');
+  const searchPanel = document.getElementById('searchPanel');
+  const searchInput = document.getElementById('searchInput');
+  const searchClearBtn = document.getElementById('searchClearBtn');
+  const searchCloseBtn = document.getElementById('searchCloseBtn');
+  const searchResults = document.getElementById('searchResults');
+  const searchEmpty = document.getElementById('searchEmpty');
+
+
   // Subpage Elements
   const subpageOverlay = document.getElementById('subpageOverlay');
   const subpageBackBtn = document.getElementById('subpageBackBtn');
@@ -2288,7 +2784,13 @@
   const myProfileAvatarBtn = document.getElementById('myProfileAvatarBtn');
   const profileOverlay = document.getElementById('profileOverlay');
   const profileBackBtn = document.getElementById('profileBackBtn');
+  const profileMenuBtn = document.getElementById('profileMenuBtn');
   const profileHeaderHandle = document.getElementById('profileHeaderHandle');
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  const settingsBackBtn = document.getElementById('settingsBackBtn');
+  const settingsContent = document.getElementById('settingsContent');
+  const settingsSearchInput = document.getElementById('settingsSearchInput');
+  const settingsEmpty = document.getElementById('settingsEmpty');
   const profileAvatarBig = document.getElementById('profileAvatarBig');
   const profileStatPosts = document.getElementById('profileStatPosts');
   const profileStatFollowers = document.getElementById('profileStatFollowers');
@@ -2548,13 +3050,18 @@
     if (!name) {
       myProfileAvatarBtn.innerHTML = '?';
       myProfileAvatarBtn.style.background = 'var(--tape-yellow)';
+      bnavAvatar.innerHTML = '?';
+      bnavAvatar.style.background = 'var(--tape-yellow)';
       return;
     }
     if (myAccountCache.avatar_url) {
       myProfileAvatarBtn.innerHTML = `<img src="${myAccountCache.avatar_url}" alt="">`;
+      bnavAvatar.innerHTML = `<img src="${myAccountCache.avatar_url}" alt="">`;
     } else {
       myProfileAvatarBtn.innerHTML = esc(initials(name));
       myProfileAvatarBtn.style.background = avatarColor(normalizeName(name));
+      bnavAvatar.innerHTML = esc(initials(name));
+      bnavAvatar.style.background = avatarColor(normalizeName(name));
     }
   }
 
@@ -2635,6 +3142,7 @@
     currentProfileTab = 'grid';
     profileTabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === 'grid'));
     unlockBodyScroll();
+    setActiveNav('home');
     // Kalau ditutup lewat UI (tombol X / klik thumbnail grid) dan history state saat
     // ini memang nandain "halaman profil lagi kebuka", mundurin history 1 langkah
     // biar tombol back HP nggak nge-"nyangkut" di state kosong. Kalau closeProfile()
@@ -2645,9 +3153,82 @@
   }
   profileBackBtn.addEventListener('click', closeProfile);
 
-  // Tombol/gesture back bawaan HP (atau tombol back browser): kalau halaman profil
-  // lagi kebuka, tutup halaman profilnya dulu, JANGAN langsung keluar dari mading.
+  // ===== Subpage "Pengaturan dan aktivitas" (dibuka lewat ikon garis 3 di profil sendiri) =====
+  let closingSettingsFromPopstate = false;
+
+  function openSettingsPage() {
+    settingsSearchInput.value = '';
+    filterSettingsItems('');
+    settingsOverlay.classList.add('open');
+    history.pushState({ papSettingsOpen: true }, '');
+  }
+  function closeSettingsPage() {
+    if (!settingsOverlay.classList.contains('open')) return;
+    settingsOverlay.classList.remove('open');
+    if (!closingSettingsFromPopstate && history.state && history.state.papSettingsOpen) {
+      history.back();
+    }
+  }
+  function filterSettingsItems(query) {
+    const q = normalizeName(query);
+    const items = Array.from(settingsContent.querySelectorAll('.settings-item'));
+    let anyVisible = false;
+    items.forEach(item => {
+      const haystack = (item.dataset.search || '') + ' ' + item.innerText;
+      const match = !q || normalizeName(haystack).includes(q);
+      item.style.display = match ? '' : 'none';
+      if (match) anyVisible = true;
+    });
+    settingsContent.querySelectorAll('.settings-section-label, .settings-section-divider').forEach(el => {
+      el.style.display = q ? 'none' : '';
+    });
+    settingsEmpty.style.display = (q && !anyVisible) ? 'block' : 'none';
+  }
+
+  profileMenuBtn.addEventListener('click', openSettingsPage);
+  settingsBackBtn.addEventListener('click', closeSettingsPage);
+  settingsSearchInput.addEventListener('input', () => filterSettingsItems(settingsSearchInput.value));
+
+  settingsContent.addEventListener('click', (e) => {
+    const btn = e.target.closest('.settings-item');
+    if (!btn) return;
+    const action = btn.dataset.settingsAction;
+    if (action === 'edit-profile') {
+      closeSettingsPage();
+      openEditProfile();
+    } else if (action === 'change-username') {
+      closeSettingsPage();
+      showNameModal(() => {});
+    } else if (action === 'notifications') {
+      closeSettingsPage();
+      openNotifPanel();
+    } else if (action === 'about') {
+      showToast('PAP. — mading foto rame-rame. pap dulu, baru cerita~ 📌');
+    } else if (action === 'delete-account') {
+      const current = usernameInput.value.trim();
+      if (!current) {
+        showToast('belum ada akun yang diisi nih 😅');
+        return;
+      }
+      showConfirm(
+        () => { closeSettingsPage(); closeProfile(); deleteAccount(); },
+        'Hapus Akun?',
+        `Nama "${current}" dan SEMUA postingan (beserta notifikasinya) bakal dihapus permanen dari mading ini. Nama itu jadi bebas dipakai orang lain lagi. Yakin nih?`,
+        'Ya, Hapus Semua',
+        'Batal'
+      );
+    }
+  });
+
+  // Tombol/gesture back bawaan HP (atau tombol back browser): tutup dulu yang paling
+  // atas (settings dulu kalau lagi kebuka, baru profil), JANGAN langsung keluar dari mading.
   window.addEventListener('popstate', () => {
+    if (settingsOverlay.classList.contains('open')) {
+      closingSettingsFromPopstate = true;
+      closeSettingsPage();
+      closingSettingsFromPopstate = false;
+      return;
+    }
     if (profileOverlay.classList.contains('open')) {
       closingProfileFromPopstate = true;
       closeProfile();
@@ -2787,6 +3368,8 @@
     if (!key) return;
     currentProfileUsername = key;
     const isOwn = normalizeName(usernameInput.value) === key;
+    setActiveNav(isOwn ? 'profile' : 'home');
+    profileMenuBtn.classList.toggle('show', isOwn);
 
     // Render dulu versi cepat pakai data yang udah ada di sisi client, biar responsif.
     profileHeaderHandle.innerText = `@${rawUsername.trim()}`;
@@ -3240,6 +3823,175 @@
   notifCloseBtn.addEventListener('click', closeNotifPanel);
   notifOverlay.addEventListener('click', closeNotifPanel);
   notifMarkAllBtn.addEventListener('click', markAllNotificationsRead);
+
+  // ===== Nav bar bawah (Home / Cari / Tambah / Profil) =====
+  function setActiveNav(key) {
+    [bnavHomeBtn, bnavSearchBtn, bnavProfileBtn].forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.nav === key);
+    });
+  }
+
+  // Nutup panel/halaman lain yang mungkin lagi kebuka sebelum navigasi ke tempat baru,
+  // biar gak numpuk overlay pas orang mencet nav bar dari mana aja.
+  function closeOtherOverlaysForNav() {
+    if (profileOverlay.classList.contains('open')) closeProfile();
+    if (searchPanel.classList.contains('open')) closeSearchPanel();
+    if (notifPanel.classList.contains('open')) closeNotifPanel();
+  }
+
+  bnavHomeBtn.addEventListener('click', () => {
+    closeOtherOverlaysForNav();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setActiveNav('home');
+  });
+
+  bnavAddBtn.addEventListener('click', () => {
+    closeOtherOverlaysForNav();
+    const composeEl = document.querySelector('.compose');
+    if (composeEl) {
+      composeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      composeEl.classList.add('compose-pulse');
+      setTimeout(() => composeEl.classList.remove('compose-pulse'), 800);
+    }
+    setTimeout(() => captionInput && captionInput.focus(), 350);
+  });
+
+  bnavProfileBtn.addEventListener('click', () => {
+    const name = usernameInput.value.trim();
+    if (!name) {
+      showToast('isi nama kamu dulu ya buat lihat profil 😅');
+      return;
+    }
+    closeOtherOverlaysForNav();
+    openProfile(name);
+  });
+
+  // ===== Panel Cari =====
+  // Nyari lewat data postingan yang udah dimuat di sisi client (nama pengirim & isi
+  // caption/judul), jadi gak nembak query baru ke Supabase tiap ngetik.
+  function getSearchMatches(rawQuery) {
+    const q = rawQuery.trim().toLowerCase();
+    if (!q) return { users: [], matchedPosts: [] };
+
+    const userMap = new Map();
+    posts.forEach(p => {
+      const key = normalizeName(p.user);
+      if (key.includes(q) && !userMap.has(key)) userMap.set(key, p.user);
+    });
+    const users = Array.from(userMap.entries()).map(([key, raw]) => ({ key, raw }));
+
+    const matchedPosts = posts.filter(p => {
+      const caption = (p.caption || '').toLowerCase();
+      const title = (p.title || '').toLowerCase();
+      return caption.includes(q) || title.includes(q);
+    }).slice(0, 30);
+
+    return { users, matchedPosts };
+  }
+
+  function renderSearchResults(rawQuery) {
+    const q = rawQuery.trim();
+    searchClearBtn.classList.toggle('show', q.length > 0);
+
+    if (!q) {
+      searchResults.innerHTML = '';
+      searchEmpty.innerText = 'ketik nama atau kata kunci buat mulai nyari~ 🔍';
+      searchResults.appendChild(searchEmpty);
+      return;
+    }
+
+    const { users, matchedPosts } = getSearchMatches(q);
+    if (!users.length && !matchedPosts.length) {
+      searchResults.innerHTML = '';
+      searchEmpty.innerText = `gak nemu apa-apa buat "${escapeHtml(q)}" 🥲`;
+      searchResults.appendChild(searchEmpty);
+      return;
+    }
+
+    let html = '';
+    if (users.length) {
+      html += `<div class="search-section-label">Akun</div>`;
+      html += users.map(u => `
+        <button type="button" class="search-user-item" data-action="search-user" data-raw="${escapeHtml(u.raw)}">
+          <span class="search-user-avatar" style="background:${avatarColor(u.key)}">${escapeHtml(initials(u.raw))}</span>
+          <span class="search-user-name">${escapeHtml(u.raw)}</span>
+        </button>
+      `).join('');
+    }
+    if (matchedPosts.length) {
+      html += `<div class="search-section-label">Postingan</div>`;
+      html += matchedPosts.map(p => {
+        const first = getMediaItems(p)[0];
+        const thumb = first
+          ? (first.type === 'video' ? `<video src="${first.src}" muted playsinline></video>` : `<img src="${first.src}" alt="">`)
+          : `📌`;
+        const snippet = p.caption || p.title || 'tanpa keterangan';
+        return `
+          <button type="button" class="search-post-item" data-action="search-post" data-id="${p.id}">
+            <span class="search-post-thumb">${thumb}</span>
+            <span class="search-post-info">
+              <span class="search-post-user">${escapeHtml(p.user)}</span>
+              <span class="search-post-caption">${escapeHtml(snippet)}</span>
+            </span>
+          </button>
+        `;
+      }).join('');
+    }
+    searchResults.innerHTML = html;
+  }
+
+  function openSearchPanel() {
+    closeOtherOverlaysForNav();
+    searchOverlay.classList.add('open');
+    requestAnimationFrame(() => searchOverlay.classList.add('show'));
+    searchPanel.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setActiveNav('search');
+    renderSearchResults(searchInput.value);
+    setTimeout(() => searchInput.focus(), 300);
+  }
+  function closeSearchPanel() {
+    searchPanel.classList.remove('open');
+    searchOverlay.classList.remove('show');
+    setTimeout(() => searchOverlay.classList.remove('open'), 200);
+    document.body.style.overflow = '';
+    setActiveNav('home');
+  }
+
+  bnavSearchBtn.addEventListener('click', openSearchPanel);
+  searchCloseBtn.addEventListener('click', closeSearchPanel);
+  searchOverlay.addEventListener('click', closeSearchPanel);
+  searchInput.addEventListener('input', () => renderSearchResults(searchInput.value));
+  searchClearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    renderSearchResults('');
+    searchInput.focus();
+  });
+
+  searchResults.addEventListener('click', (e) => {
+    const userBtn = e.target.closest('[data-action="search-user"]');
+    if (userBtn) {
+      const raw = userBtn.dataset.raw;
+      closeSearchPanel();
+      setTimeout(() => openProfile(raw), 220);
+      return;
+    }
+    const postBtn = e.target.closest('[data-action="search-post"]');
+    if (postBtn) {
+      const id = Number(postBtn.dataset.id);
+      closeSearchPanel();
+      setTimeout(() => {
+        const card = feedEl.querySelector(`.polaroid[data-post-id="${id}"]`);
+        if (!card) {
+          showToast('Postingan ini udah nggak ada lagi 🥲');
+          return;
+        }
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('highlight-flash');
+        setTimeout(() => card.classList.remove('highlight-flash'), 1200);
+      }, 300);
+    }
+  });
 
   // Klik satu notifikasi: tandai terbaca, tutup panel, lalu bawa ke postingan terkait
   // (dan buka panel komentarnya kalau notifnya berupa komentar/balasan).
