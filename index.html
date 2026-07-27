@@ -2910,8 +2910,11 @@
       // di-update ternyata 0 (misal baris akun buat device ini belum sempet kebuat,
       // atau kena filter RLS) -- makanya dulu toast "berhasil" tetep muncul padahal
       // di database nggak ada yang berubah. Sekarang kita cek beneran ada baris yang
-      // ke-update pakai .select(); kalau ternyata kosong, fallback ke upsert
-      // berdasarkan kolom username (yang UNIQUE) biar datanya dijamin ke-tulis.
+      // ke-update pakai .select(); kalau ternyata kosong, fallback manual: cek dulu
+      // baris berdasarkan username, baru update atau insert baris baru. (Sengaja
+      // nggak pakai .upsert({onConflict:'username'}) soalnya itu butuh kolom
+      // username punya UNIQUE constraint asli di level database -- kalau constraint
+      // itu ternyata belum ke-set di tabelnya, upsert-nya sendiri yang error.)
       const { data: updRows, error } = await sb
         .from(ACCOUNTS_TABLE)
         .update({ full_name: fullName || null, avatar_url: avatarUrl })
@@ -2920,19 +2923,31 @@
       if (error) throw error;
 
       if (!updRows || updRows.length === 0) {
-        const { error: upsertErr } = await sb
+        const { data: existingRow, error: selErr } = await sb
           .from(ACCOUNTS_TABLE)
-          .upsert(
-            {
+          .select('username')
+          .eq('username', me)
+          .maybeSingle();
+        if (selErr) throw selErr;
+
+        if (existingRow) {
+          const { error: updByNameErr } = await sb
+            .from(ACCOUNTS_TABLE)
+            .update({ full_name: fullName || null, avatar_url: avatarUrl, device_id: deviceId })
+            .eq('username', me);
+          if (updByNameErr) throw updByNameErr;
+        } else {
+          const { error: insErr2 } = await sb
+            .from(ACCOUNTS_TABLE)
+            .insert({
               username: me,
               display_name: usernameInput.value.trim(),
               device_id: deviceId,
               full_name: fullName || null,
               avatar_url: avatarUrl
-            },
-            { onConflict: 'username' }
-          );
-        if (upsertErr) throw upsertErr;
+            });
+          if (insErr2) throw insErr2;
+        }
       }
 
       myAccountCache.full_name = fullName || null;
@@ -2950,7 +2965,8 @@
       refreshFeedAvatars();
     } catch (e) {
       console.error('Gagal menyimpan profil', e);
-      showToast('gagal menyimpan profil, coba lagi ya 🥲');
+      const detail = (e && (e.message || e.error_description || e.hint)) || '';
+      showToast(detail ? `gagal menyimpan profil: ${detail}` : 'gagal menyimpan profil, coba lagi ya 🥲');
     } finally {
       editProfileSaveBtn.disabled = false;
       editProfileSaveBtn.innerText = prevText;
