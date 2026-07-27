@@ -2797,7 +2797,12 @@
 
     try {
       const [accRes, followerRes, followingRes, myFollowRes] = await Promise.all([
-        sb.from(ACCOUNTS_TABLE).select('full_name, avatar_url, display_name').eq('username', key).maybeSingle(),
+        // Sengaja nggak pakai .maybeSingle() di sini: kalau ternyata ada lebih dari 1
+        // baris akun buat username ini (data lama sebelum dibersihkan), .maybeSingle()
+        // bakal ngelempar error, dan karena render "cepat" di atas udah kadung
+        // ngosongin foto/nama duluan, hasilnya foto & nama lengkap keliatan "hilang"
+        // pas buka lagi halaman profil ini -- padahal datanya sebenarnya masih ada.
+        sb.from(ACCOUNTS_TABLE).select('full_name, avatar_url, display_name').eq('username', key),
         sb.from(FOLLOWS_TABLE).select('*', { count: 'exact', head: true }).eq('following_username', key),
         sb.from(FOLLOWS_TABLE).select('*', { count: 'exact', head: true }).eq('follower_username', key),
         isOwn
@@ -2810,7 +2815,8 @@
 
       if (currentProfileUsername !== key) return; // udah pindah/nutup profil pas nunggu
 
-      const acc = accRes.data || null;
+      const accRows = accRes.data || [];
+      const acc = accRows.find(r => r.full_name || r.avatar_url) || accRows[0] || null;
       const handle = (acc && acc.display_name) || rawUsername.trim();
       profileHeaderHandle.innerText = `@${handle}`;
       profileUsernameSub.innerText = `@${handle}`;
@@ -2833,6 +2839,8 @@
       profileStatFollowers.innerText = '0';
       profileStatFollowing.innerText = '0';
       renderProfileButtons(key, isOwn, false);
+      const detail = (e && (e.message || e.error_description || e.hint)) || '';
+      showToast(detail ? `gagal memuat profil: ${detail}` : 'gagal memuat profil, coba lagi ya 🥲');
     }
   }
 
