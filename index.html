@@ -1894,6 +1894,72 @@
   .profile-menu-btn:hover{ transform:rotate(90deg); }
   .profile-menu-btn.show{ visibility:visible; }
 
+  /* ===== Halaman "Postingan @username" (dibuka dari grid profil, halaman terpisah dari mading umum) ===== */
+  .user-posts-overlay{ z-index:650; }
+  .user-posts-body{
+    flex:1;
+    overflow-y:auto;
+    padding:20px 20px 40px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.06) 0%, transparent 55%),
+      var(--paper);
+  }
+  .user-posts-body .feed{ gap:46px; }
+  .user-posts-body .empty-state{
+    display:block;
+    margin-top:60px;
+  }
+
+  /* Angka pengikut/mengikuti di halaman profil dibikin bisa diklik */
+  .profile-stat-clickable{
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+    padding:0;
+    text-align:left;
+  }
+  .profile-stat-clickable:active{ opacity:0.6; }
+
+  /* ===== Halaman daftar "Pengikut" / "Mengikuti" (subpage dari profil) ===== */
+  .follow-list-overlay{ z-index:650; }
+  .follow-list-body{
+    flex:1;
+    overflow-y:auto;
+    padding:10px 12px 30px;
+  }
+  .follow-list-item{ width:100%; }
+  .search-user-avatar{ overflow:hidden; }
+  .search-user-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .follow-list-namewrap{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    gap:1px;
+  }
+  .follow-list-handle{
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .follow-list-fullname{
+    font-size:12px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .follow-list-empty,
+  .follow-list-loading{
+    text-align:center;
+    color:var(--ink-soft);
+    padding:50px 20px;
+    font-size:14px;
+  }
+
   /* ===== Halaman "Pengaturan dan aktivitas" (subpage dari profil) ===== */
   .settings-overlay{
     position:fixed;
@@ -2502,8 +2568,8 @@
         <div class="profile-fullname" id="profileFullName">&nbsp;</div>
         <div class="profile-stats">
           <div class="profile-stat"><b id="profileStatPosts">0</b><span>postingan</span></div>
-          <div class="profile-stat"><b id="profileStatFollowers">0</b><span>pengikut</span></div>
-          <div class="profile-stat"><b id="profileStatFollowing">0</b><span>mengikuti</span></div>
+          <button type="button" class="profile-stat profile-stat-clickable" id="profileStatFollowersBtn"><b id="profileStatFollowers">0</b><span>pengikut</span></button>
+          <button type="button" class="profile-stat profile-stat-clickable" id="profileStatFollowingBtn"><b id="profileStatFollowing">0</b><span>mengikuti</span></button>
         </div>
       </div>
     </div>
@@ -2525,6 +2591,38 @@
 
     <div class="profile-grid" id="profileGrid"></div>
   </div>
+</div>
+
+<!-- Halaman "Postingan @username" — dibuka dari grid profil. Ini halaman TERPISAH dari
+     mading umum: cuma nampilin postingan milik 1 orang itu aja, bukan campur sama postingan
+     orang lain di mading umum. -->
+<div id="userPostsOverlay" class="profile-overlay user-posts-overlay">
+  <div class="profile-header">
+    <button class="profile-back-btn" id="userPostsBackBtn" aria-label="Kembali">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    <div class="profile-header-handle" id="userPostsTitle">Postingan</div>
+    <div style="width:36px;"></div>
+  </div>
+  <div class="user-posts-body" id="userPostsBody"></div>
+</div>
+
+<!-- Halaman daftar "Pengikut" / "Mengikuti" — dibuka dari klik angka statistik di halaman profil -->
+<div id="followListOverlay" class="profile-overlay follow-list-overlay">
+  <div class="profile-header">
+    <button class="profile-back-btn" id="followListBackBtn" aria-label="Kembali">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    <div class="profile-header-handle" id="followListTitle">Pengikut</div>
+    <div style="width:36px;"></div>
+  </div>
+  <div class="follow-list-body" id="followListBody"></div>
 </div>
 
 <!-- Subpage Pengaturan dan aktivitas (dibuka lewat ikon garis 3 di halaman profil sendiri) -->
@@ -2799,6 +2897,16 @@
   const profileUsernameSub = document.getElementById('profileUsernameSub');
   const profileBtnRow = document.getElementById('profileBtnRow');
   const profileGrid = document.getElementById('profileGrid');
+  const userPostsOverlay = document.getElementById('userPostsOverlay');
+  const userPostsBackBtn = document.getElementById('userPostsBackBtn');
+  const userPostsTitle = document.getElementById('userPostsTitle');
+  const userPostsBody = document.getElementById('userPostsBody');
+  const profileStatFollowersBtn = document.getElementById('profileStatFollowersBtn');
+  const profileStatFollowingBtn = document.getElementById('profileStatFollowingBtn');
+  const followListOverlay = document.getElementById('followListOverlay');
+  const followListBackBtn = document.getElementById('followListBackBtn');
+  const followListTitle = document.getElementById('followListTitle');
+  const followListBody = document.getElementById('followListBody');
   const editProfileModal = document.getElementById('editProfileModal');
   const editAvatarPicker = document.getElementById('editAvatarPicker');
   const editAvatarInner = document.getElementById('editAvatarInner');
@@ -3229,6 +3337,25 @@
       closingSettingsFromPopstate = false;
       return;
     }
+    if (userPostsOverlay.classList.contains('open')) {
+      closingUserPostsFromPopstate = true;
+      closeUserPosts();
+      closingUserPostsFromPopstate = false;
+      return;
+    }
+    if (followListOverlay.classList.contains('open')) {
+      closingFollowListFromPopstate = true;
+      closeFollowList();
+      closingFollowListFromPopstate = false;
+      // Kalau nutupnya ini gara-gara klik salah satu orang di daftar (bukan tombol back
+      // biasa), sekalian pindahin halaman profil di belakangnya ke orang yang diklik itu.
+      if (pendingProfileSwitch) {
+        const nextUser = pendingProfileSwitch;
+        pendingProfileSwitch = null;
+        openProfile(nextUser);
+      }
+      return;
+    }
     if (profileOverlay.classList.contains('open')) {
       closingProfileFromPopstate = true;
       closeProfile();
@@ -3279,20 +3406,197 @@
     });
   });
 
-  // Klik thumbnail grid: tutup halaman profil, lalu scroll ke postingannya di mading utama
+  // ===== Halaman "Postingan @username" — halaman TERPISAH dari mading umum. Cuma nampilin
+  // postingan milik 1 orang (bukan campur postingan orang lain). Dibuka dari klik thumbnail
+  // grid di halaman profil, DITUMPUK di atas halaman profil (profil-nya sendiri gak ditutup,
+  // cuma ketutup visual sama halaman ini) — makanya kalau back, balik ke halaman profil lagi,
+  // bukan langsung ke mading umum. Supaya semua fitur kartu (like, komen, slider, dsb) tetap
+  // jalan tanpa perlu nulis ulang semua listener-nya, elemen <div id="feed"> yang sama
+  // (beserta <div id="emptyState">) dipindah (reparent) ke dalam halaman ini, lalu render()
+  // difilter supaya cuma nampilin postingan user itu aja. Waktu ditutup, feed dikembalikan
+  // lagi ke posisi asalnya di mading umum.
+  let feedFilterUser = null; // normalized username kalau lagi mode "postingan 1 orang", null kalau mading umum
+  let feedHomeParent = null;
+  let feedHomeAnchor = null; // node stabil (gak ikut dipindah) buat jadi patokan posisi balik
+  let closingUserPostsFromPopstate = false;
+
+  function openUserPosts(key, focusId) {
+    if (!key) return;
+    feedFilterUser = key;
+    userPostsTitle.innerText = `Postingan @${key}`;
+
+    if (!feedHomeParent) {
+      feedHomeParent = feedEl.parentNode;
+      feedHomeAnchor = emptyState.nextSibling;
+    }
+    userPostsBody.appendChild(feedEl);
+    userPostsBody.appendChild(emptyState);
+
+    render();
+    refreshFeedAvatars();
+    userPostsBody.scrollTop = 0;
+
+    userPostsOverlay.classList.add('open');
+    // Halaman profil di belakangnya SENGAJA dibiarkan tetap "open" (gak ditutup) —
+    // dia cuma ketutup visual sama halaman ini (z-index lebih tinggi). Body scroll
+    // udah dikunci dari waktu profil dibuka, jadi gak perlu dikunci ulang di sini.
+    if (document.body.style.position !== 'fixed') lockBodyScroll();
+    history.pushState({ papUserPostsOpen: true }, '');
+
+    if (focusId) {
+      setTimeout(() => {
+        const card = feedEl.querySelector(`.polaroid[data-post-id="${focusId}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'auto', block: 'center' });
+          card.classList.add('highlight-flash');
+          setTimeout(() => card.classList.remove('highlight-flash'), 1200);
+        }
+      }, 60);
+    }
+  }
+
+  function closeUserPosts() {
+    if (!userPostsOverlay.classList.contains('open')) return;
+    userPostsOverlay.classList.remove('open');
+    feedFilterUser = null;
+    if (feedHomeParent) {
+      feedHomeParent.insertBefore(feedEl, feedHomeAnchor);
+      feedHomeParent.insertBefore(emptyState, feedHomeAnchor);
+    }
+    render();
+    refreshFeedAvatars();
+    // Halaman profil di belakangnya masih "open" (gak pernah ditutup), jadi setelah
+    // ini ditutup, balik lagi keliatan ke halaman profil — TIDAK di-unlock scroll-nya
+    // di sini, biarin closeProfile() yang urus itu waktu profilnya beneran ditutup.
+    if (!closingUserPostsFromPopstate && history.state && history.state.papUserPostsOpen) {
+      history.back();
+    }
+  }
+  // Tombol back di halaman ini SENGAJA cuma manggil history.back(), bukan langsung
+  // closeUserPosts() — biar penutupannya ditangani lewat listener popstate di bawah (yang
+  // berhenti abis nutup 1 layer teratas aja). Kalau closeUserPosts() dipanggil langsung dari
+  // sini, class "open"-nya kehapus duluan SEBELUM history.back() jalan, jadi pas event
+  // popstate-nya nyampe, listener bakal ngira halaman ini udah ketutup duluan terus ikut
+  // nutup halaman profil di bawahnya juga — padahal harusnya cuma balik ke situ, bukan ikut ketutup.
+  userPostsBackBtn.addEventListener('click', () => {
+    if (history.state && history.state.papUserPostsOpen) {
+      history.back();
+    } else {
+      closeUserPosts();
+    }
+  });
+
+  // Klik thumbnail grid: buka halaman "Postingan @username" DITUMPUK di atas halaman
+  // profil (profilnya gak ditutup) — jadi kalau back, balik ke halaman profil lagi.
   profileGrid.addEventListener('click', (e) => {
     const btn = e.target.closest('.profile-grid-item');
     if (!btn) return;
     const id = Number(btn.dataset.id);
-    closeProfile();
-    setTimeout(() => {
-      const card = feedEl.querySelector(`.polaroid[data-post-id="${id}"]`);
-      if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        card.classList.add('highlight-flash');
-        setTimeout(() => card.classList.remove('highlight-flash'), 1200);
+    const key = currentProfileUsername;
+    openUserPosts(key, id);
+  });
+
+  // ===== Halaman daftar "Pengikut" / "Mengikuti" — sama polanya kayak halaman
+  // "Postingan @username": ditumpuk di atas halaman profil (profilnya gak ditutup),
+  // jadi kalau back, balik ke halaman profil lagi.
+  let closingFollowListFromPopstate = false;
+  // Diisi username kalau nutupnya gara-gara klik salah satu orang di daftar (pengin
+  // langsung pindah ke profil orang itu), dipakai sama listener popstate di atas.
+  let pendingProfileSwitch = null;
+
+  async function openFollowList(key, type) {
+    if (!key) return;
+    followListTitle.innerText = type === 'followers' ? `Pengikut @${key}` : `Mengikuti @${key}`;
+    followListBody.innerHTML = `<div class="follow-list-loading">memuat...</div>`;
+
+    followListOverlay.classList.add('open');
+    if (document.body.style.position !== 'fixed') lockBodyScroll();
+    history.pushState({ papFollowListOpen: true }, '');
+
+    try {
+      const filterColumn = type === 'followers' ? 'following_username' : 'follower_username';
+      const pickColumn = type === 'followers' ? 'follower_username' : 'following_username';
+      const { data, error } = await sb.from(FOLLOWS_TABLE).select(pickColumn).eq(filterColumn, key);
+      if (error) throw error;
+
+      const usernames = [...new Set((data || []).map(r => r[pickColumn]).filter(Boolean))];
+      if (!usernames.length) {
+        followListBody.innerHTML = `<div class="follow-list-empty">${type === 'followers' ? 'belum ada pengikut 🥲' : 'belum ngikutin siapa-siapa 🥲'}</div>`;
+        return;
       }
-    }, 380);
+
+      let accMap = {};
+      try {
+        const { data: accRows } = await sb.from(ACCOUNTS_TABLE)
+          .select('username, display_name, full_name, avatar_url').in('username', usernames);
+        (accRows || []).forEach(r => { accMap[r.username] = r; });
+      } catch (e) {
+        // Gagal ambil foto/nama lengkap bukan fatal, tetep tampilin daftar usernamenya aja
+        console.error('Gagal memuat detail akun buat daftar follow', e);
+      }
+
+      followListBody.innerHTML = usernames.map(u => {
+        const acc = accMap[u];
+        const displayName = (acc && acc.display_name) || u;
+        const fullName = (acc && acc.full_name) ? esc(acc.full_name) : '';
+        const hasPhoto = !!(acc && acc.avatar_url);
+        const avatarInner = hasPhoto ? `<img src="${acc.avatar_url}" alt="">` : esc(initials(u));
+        const avatarBg = hasPhoto ? 'transparent' : avatarColor(u);
+        return `
+          <button type="button" class="search-user-item follow-list-item" data-username="${esc(u)}">
+            <span class="search-user-avatar" style="background:${avatarBg}">${avatarInner}</span>
+            <span class="follow-list-namewrap">
+              <span class="follow-list-handle">@${esc(displayName)}</span>
+              ${fullName ? `<span class="follow-list-fullname">${fullName}</span>` : ''}
+            </span>
+          </button>`;
+      }).join('');
+    } catch (e) {
+      console.error('Gagal memuat daftar follow', e);
+      followListBody.innerHTML = `<div class="follow-list-empty">gagal memuat, coba lagi ya 🥲</div>`;
+    }
+  }
+
+  function closeFollowList() {
+    if (!followListOverlay.classList.contains('open')) return;
+    followListOverlay.classList.remove('open');
+    // Halaman profil di belakangnya masih "open" (gak pernah ditutup), jadi setelah
+    // ini ditutup, balik lagi keliatan ke halaman profil.
+    if (!closingFollowListFromPopstate && history.state && history.state.papFollowListOpen) {
+      history.back();
+    }
+  }
+
+  followListBackBtn.addEventListener('click', () => {
+    if (history.state && history.state.papFollowListOpen) {
+      history.back();
+    } else {
+      closeFollowList();
+    }
+  });
+
+  profileStatFollowersBtn.addEventListener('click', () => {
+    if (currentProfileUsername) openFollowList(currentProfileUsername, 'followers');
+  });
+  profileStatFollowingBtn.addEventListener('click', () => {
+    if (currentProfileUsername) openFollowList(currentProfileUsername, 'following');
+  });
+
+  // Klik salah satu orang di daftar pengikut/mengikuti: balik dulu 1 langkah history
+  // (biar halaman daftar ini ketutup lewat listener popstate), terus pindahin halaman
+  // profil di belakangnya ke orang yang diklik itu.
+  followListBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('.follow-list-item');
+    if (!btn) return;
+    const username = btn.dataset.username;
+    if (!username) return;
+    if (history.state && history.state.papFollowListOpen) {
+      pendingProfileSwitch = username;
+      history.back();
+    } else {
+      closeFollowList();
+      openProfile(username);
+    }
   });
 
   // Bikin link deep-link ke profil (pakai hash, biar gak perlu server routing tambahan)
@@ -4693,10 +4997,17 @@
     videoStates[`${wrap.dataset.id}:${idx}`] = { time: v.currentTime, playing: !v.paused };
   });
 
-  feedEl.innerHTML = '';
-  emptyState.style.display = posts.length ? 'none' : 'block';
+  const visiblePosts = feedFilterUser
+    ? posts.filter(p => normalizeName(p.user) === feedFilterUser)
+    : posts;
 
-  posts.forEach((post, index) => {
+  feedEl.innerHTML = '';
+  emptyState.style.display = visiblePosts.length ? 'none' : 'block';
+  emptyState.innerHTML = feedFilterUser
+    ? `belum ada postingan dari @${esc(feedFilterUser)} 📭`
+    : 'masih kosong nih mading-nya! 📌<br>gaskeun pap pertama, biar rame! 🔥';
+
+  visiblePosts.forEach((post, index) => {
       const card = buildPostCard(post, index);
       feedEl.appendChild(card);
   });
