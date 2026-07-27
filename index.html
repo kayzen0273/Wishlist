@@ -1554,6 +1554,7 @@
   .notif-icon.like{ background:#ffd7de; }
   .notif-icon.comment{ background:#d7ecff; }
   .notif-icon.reply{ background:#e2f2c7; }
+  .notif-icon.follow{ background:#ecdcff; }
   .notif-body{ flex:1; min-width:0; }
   .notif-text{
     font-size:13.5px;
@@ -2759,11 +2760,14 @@
           const { error } = await sb.from(FOLLOWS_TABLE).delete()
             .eq('follower_username', me).eq('following_username', targetKey);
           if (error) throw error;
+          // Unfollow: notif "follow" yang sebelumnya udah kekirim ikut ilang juga
+          removeNotification({ recipientName: targetKey, actorName: usernameInput.value, type: 'follow' });
         } else {
           const { error } = await sb.from(FOLLOWS_TABLE).insert({
             follower_username: me, following_username: targetKey, follower_device_id: deviceId
           });
           if (error && error.code !== '23505') throw error;
+          insertNotification({ recipientName: targetKey, actorName: usernameInput.value, type: 'follow' });
         }
         if (currentProfileUsername === targetKey) {
           renderProfileButtons(targetKey, false, !wasFollowing);
@@ -3059,11 +3063,13 @@
   function notifIcon(type) {
     if (type === 'like') return '❤️';
     if (type === 'reply') return '↩️';
+    if (type === 'follow') return '➕';
     return '💬';
   }
   function notifActionText(type) {
     if (type === 'like') return 'nge-like postingan kamu';
     if (type === 'reply') return 'membalas komentar kamu';
+    if (type === 'follow') return 'mulai follow kamu';
     return 'komentar di postingan kamu';
   }
 
@@ -3087,7 +3093,7 @@
     }
 
     notifList.innerHTML = notifications.map(n => `
-      <div class="notif-item ${n.is_read ? '' : 'unread'}" data-notif-id="${n.id}" data-post-id="${n.post_id}">
+      <div class="notif-item ${n.is_read ? '' : 'unread'}" data-notif-id="${n.id}" data-post-id="${n.post_id ?? ''}">
         <div class="notif-icon ${n.type}">${notifIcon(n.type)}</div>
         <div class="notif-body">
           <div class="notif-text"><b>${escapeHtml(n.actor_name)}</b> ${notifActionText(n.type)}</div>
@@ -3105,13 +3111,17 @@
     const recipient = normalizeName(recipientName);
     const actor = normalizeName(actorName);
     if (!recipient || !actor) return;
+    // postId sengaja bisa kosong: notif tipe 'follow' nggak nempel ke postingan tertentu,
+    // jadi dicocokkan lewat kombinasi recipient+actor+type aja (post_id-nya NULL di DB).
+    const pid = (postId === undefined || postId === null) ? null : postId;
     try {
-      const { error } = await sb.from(NOTIF_TABLE)
+      let q = sb.from(NOTIF_TABLE)
         .delete()
         .eq('recipient_name', recipient)
         .eq('actor_name', (actorName || '').trim())
-        .eq('type', type)
-        .eq('post_id', postId);
+        .eq('type', type);
+      q = (pid === null) ? q.is('post_id', null) : q.eq('post_id', pid);
+      const { error } = await q;
       if (error) throw error;
     } catch (e) {
       console.error("Gagal menghapus notifikasi dari Supabase", e);
@@ -3121,7 +3131,7 @@
       normalizeName(n.recipient_name) === recipient &&
       normalizeName(n.actor_name) === actor &&
       n.type === type &&
-      n.post_id === postId
+      (n.post_id ?? null) === pid
     ));
     renderNotifications();
   }
@@ -3134,13 +3144,14 @@
     const recipient = normalizeName(recipientName);
     const actor = normalizeName(actorName);
     if (!recipient || recipient === actor) return;
-    await _removeNotificationImpl({ recipientName, actorName, type, postId });
+    const pid = (postId === undefined || postId === null) ? null : postId;
+    await _removeNotificationImpl({ recipientName, actorName, type, postId: pid });
     try {
       const { data, error } = await sb.from(NOTIF_TABLE).insert({
         recipient_name: recipient,
         actor_name: (actorName || '').trim(),
         type,
-        post_id: postId,
+        post_id: pid,
         preview_text: previewText ? previewText.slice(0, 80) : null,
         is_read: false
       }).select().single();
@@ -3167,7 +3178,8 @@
   // beneran selesai dulu sebelum lanjut, jadi hasil akhirnya selalu konsisten: 1 notif per kombinasi.
   const notifOpChain = new Map();
   function notifOpKey({ recipientName, actorName, type, postId }) {
-    return `${normalizeName(recipientName)}|${normalizeName(actorName)}|${type}|${postId}`;
+    const pid = (postId === undefined || postId === null) ? 'none' : postId;
+    return `${normalizeName(recipientName)}|${normalizeName(actorName)}|${type}|${pid}`;
   }
   function queueNotifOp(key, fn) {
     const prev = notifOpChain.get(key) || Promise.resolve();
@@ -3235,11 +3247,18 @@
     const item = e.target.closest('.notif-item');
     if (!item) return;
     const notifId = Number(item.dataset.notifId);
-    const postId = Number(item.dataset.postId);
-    const type = notifications.find(n => n.id === notifId)?.type;
+    const notif = notifications.find(n => n.id === notifId);
+    const type = notif?.type;
     markNotificationRead(notifId);
     closeNotifPanel();
 
+    // Notif follow gak nempel ke postingan manapun — arahkan ke profil orang yang follow.
+    if (type === 'follow') {
+      if (notif?.actor_name) setTimeout(() => openProfile(notif.actor_name), 250);
+      return;
+    }
+
+    const postId = Number(item.dataset.postId);
     const card = feedEl.querySelector(`.polaroid[data-post-id="${postId}"]`);
     if (!card) {
       showToast('Postingan ini udah nggak ada lagi 🥲');
