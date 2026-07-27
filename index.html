@@ -2906,11 +2906,34 @@
       }
       const fullName = editFullNameInput.value.trim();
 
-      const { error } = await sb
+      // Penting: .update() Supabase itu NGGAK ngelempar error walaupun baris yang
+      // di-update ternyata 0 (misal baris akun buat device ini belum sempet kebuat,
+      // atau kena filter RLS) -- makanya dulu toast "berhasil" tetep muncul padahal
+      // di database nggak ada yang berubah. Sekarang kita cek beneran ada baris yang
+      // ke-update pakai .select(); kalau ternyata kosong, fallback ke upsert
+      // berdasarkan kolom username (yang UNIQUE) biar datanya dijamin ke-tulis.
+      const { data: updRows, error } = await sb
         .from(ACCOUNTS_TABLE)
         .update({ full_name: fullName || null, avatar_url: avatarUrl })
-        .eq('device_id', deviceId);
+        .eq('device_id', deviceId)
+        .select('username');
       if (error) throw error;
+
+      if (!updRows || updRows.length === 0) {
+        const { error: upsertErr } = await sb
+          .from(ACCOUNTS_TABLE)
+          .upsert(
+            {
+              username: me,
+              display_name: usernameInput.value.trim(),
+              device_id: deviceId,
+              full_name: fullName || null,
+              avatar_url: avatarUrl
+            },
+            { onConflict: 'username' }
+          );
+        if (upsertErr) throw upsertErr;
+      }
 
       myAccountCache.full_name = fullName || null;
       myAccountCache.avatar_url = avatarUrl;
