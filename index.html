@@ -1563,6 +1563,8 @@
   .notif-icon.comment{ background:#d7ecff; }
   .notif-icon.reply{ background:#e2f2c7; }
   .notif-icon.follow{ background:#ecdcff; }
+  .notif-icon.story_like{ background:#ffd7de; }
+  .notif-icon.story_reply{ background:#fff0c2; }
   .notif-body{ flex:1; min-width:0; }
   .notif-text{
     font-size:13.5px;
@@ -2669,6 +2671,290 @@
     flex:1;
     height:100%;
   }
+  /* ===== Footer balas & suka cerita (mirip IG: "Kirim pesan" + love + kirim) ===== */
+  .story-viewer-footer{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom));
+    flex-shrink:0;
+  }
+  .story-viewer-reply-box{
+    flex:1;
+    min-width:0;
+  }
+  .story-viewer-reply-box input{
+    width:100%;
+    box-sizing:border-box;
+    border:1.5px solid rgba(255,255,255,0.5);
+    background:transparent;
+    color:#fff;
+    border-radius:999px;
+    padding:11px 18px;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:14.5px;
+    outline:none;
+  }
+  .story-viewer-reply-box input::placeholder{
+    color:rgba(255,255,255,0.75);
+  }
+  .story-viewer-footer-icon-btn{
+    border:none;
+    background:transparent;
+    color:#fff;
+    flex-shrink:0;
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .story-viewer-footer-icon-btn svg{
+    width:26px;
+    height:26px;
+    transition:transform 0.15s ease;
+  }
+  .story-viewer-footer-icon-btn.liked svg{
+    fill:var(--heart);
+    stroke:var(--heart);
+  }
+  .story-viewer-footer-icon-btn.pop svg{
+    animation:storyLikePop .35s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes storyLikePop{
+    0%{ transform:scale(1); }
+    40%{ transform:scale(1.35); }
+    100%{ transform:scale(1); }
+  }
+  .story-viewer-footer-icon-btn[disabled]{
+    opacity:0.45;
+    cursor:default;
+  }
+
+  /* ===== Menu titik-tiga cerita (bottom sheet, gantiin tombol hapus & X terpisah) ===== */
+  .story-options-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    z-index:1000;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .story-options-overlay.open{ display:flex; }
+  .story-options-sheet{
+    width:100%;
+    max-width:480px;
+    background:#1c1c1e;
+    border-radius:16px 16px 0 0;
+    padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+    transform:translateY(100%);
+    transition:transform 0.25s cubic-bezier(0.32,0.94,0.6,1);
+  }
+  .story-options-overlay.open .story-options-sheet{
+    transform:translateY(0);
+  }
+  .story-options-handle{
+    width:36px;
+    height:4px;
+    border-radius:3px;
+    background:rgba(255,255,255,0.3);
+    margin:6px auto 8px;
+  }
+  .story-options-item{
+    display:block;
+    width:100%;
+    border:none;
+    background:transparent;
+    color:#fff;
+    text-align:center;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:16px;
+    font-weight:600;
+    padding:16px 20px;
+    cursor:pointer;
+  }
+  .story-options-item:active{ background:rgba(255,255,255,0.08); }
+  .story-options-item.danger{ color:#ff453a; }
+  .story-options-divider{
+    height:7px;
+    background:#000;
+  }
+
+  /* ===== Panel "Orang yang melihat cerita Anda" (swipe up di cerita sendiri) ===== */
+  .story-viewers-overlay{
+    position:fixed;
+    inset:0;
+    background:#000;
+    z-index:620;
+    display:flex;
+    flex-direction:column;
+    transform:translateY(100%);
+    transition:transform 0.3s cubic-bezier(0.32,0.94,0.6,1);
+  }
+  .story-viewers-overlay.open{ transform:translateY(0); }
+  @media (min-width:641px){
+    .story-viewers-overlay{
+      max-width:480px;
+      margin:0 auto;
+      inset:auto 0 0 0;
+      height:94vh;
+      top:6vh;
+      border-radius:20px 20px 0 0;
+      overflow:hidden;
+    }
+  }
+  .story-viewers-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 18px 8px;
+    flex-shrink:0;
+  }
+  .story-viewers-thumbs{
+    display:flex;
+    gap:8px;
+    padding:12px 16px;
+    overflow-x:auto;
+    flex-shrink:0;
+  }
+  .story-viewers-thumbs::-webkit-scrollbar{ display:none; }
+  .story-viewers-thumb{
+    width:64px;
+    height:100px;
+    border-radius:8px;
+    overflow:hidden;
+    position:relative;
+    flex-shrink:0;
+    background:#222;
+    border:2px solid transparent;
+    cursor:pointer;
+  }
+  .story-viewers-thumb.active{ border-color:#fff; }
+  .story-viewers-thumb img, .story-viewers-thumb video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .story-viewers-thumb-count{
+    position:absolute;
+    left:4px;
+    bottom:4px;
+    background:rgba(0,0,0,0.55);
+    color:#fff;
+    font-size:10.5px;
+    font-weight:700;
+    padding:1px 6px;
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    gap:2px;
+  }
+  .story-viewers-thumb-add{
+    width:64px;
+    height:100px;
+    border-radius:8px;
+    flex-shrink:0;
+    background:#1c1c1e;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    cursor:pointer;
+  }
+  .story-viewers-handle{
+    width:36px;
+    height:4px;
+    border-radius:3px;
+    background:rgba(255,255,255,0.3);
+    margin:2px auto 4px;
+    flex-shrink:0;
+  }
+  .story-viewers-statsrow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 18px;
+    border-bottom:1px solid rgba(255,255,255,0.1);
+    flex-shrink:0;
+  }
+  .story-viewers-count{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#fff;
+    font-weight:700;
+    font-size:15px;
+  }
+  .story-viewers-count svg{ width:20px; height:20px; }
+  .story-viewers-stats-actions{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .story-viewers-title{
+    color:#fff;
+    font-weight:800;
+    font-size:16.5px;
+    padding:16px 18px 8px;
+    flex-shrink:0;
+  }
+  .story-viewers-list{
+    flex:1;
+    overflow-y:auto;
+    padding:0 10px 20px;
+  }
+  .story-viewers-empty{
+    color:rgba(255,255,255,0.6);
+    text-align:center;
+    padding:40px 20px;
+    font-size:14px;
+  }
+  .story-viewer-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:8px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .story-viewer-row:hover{ background:rgba(255,255,255,0.06); }
+  .story-viewer-row-avatar{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:var(--tape-blue);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:15px;
+    flex-shrink:0;
+    background-size:cover;
+    background-position:center;
+  }
+  .story-viewer-row-name{
+    flex:1;
+    min-width:0;
+    color:#fff;
+    font-weight:700;
+    font-size:14.5px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .story-viewer-row-actions{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-shrink:0;
+    color:#fff;
+  }
+  .story-viewer-row-actions svg{ width:22px; height:22px; }
 </style>
 </head>
 <body>
@@ -2876,11 +3162,11 @@
       <span class="story-viewer-time" id="storyViewerTime"></span>
     </div>
     <div class="story-viewer-actions">
-      <button type="button" id="storyViewerDeleteBtn" class="story-viewer-icon-btn" aria-label="Hapus cerita" style="display:none;">🗑️</button>
-      <button type="button" id="storyViewerCloseBtn" class="story-viewer-icon-btn" aria-label="Tutup">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
+      <button type="button" id="storyViewerMenuBtn" class="story-viewer-icon-btn" aria-label="Opsi cerita">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="5" r="2"></circle>
+          <circle cx="12" cy="12" r="2"></circle>
+          <circle cx="12" cy="19" r="2"></circle>
         </svg>
       </button>
     </div>
@@ -2892,6 +3178,85 @@
       <div class="story-viewer-nav-next" id="storyViewerNextZone"></div>
     </div>
   </div>
+  <div class="story-viewer-footer" id="storyViewerFooter">
+    <div class="story-viewer-reply-box">
+      <input type="text" id="storyViewerReplyInput" placeholder="Kirim pesan" maxlength="200" autocomplete="off">
+    </div>
+    <button type="button" id="storyViewerLikeBtn" class="story-viewer-footer-icon-btn" aria-label="Suka cerita">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"></path>
+      </svg>
+    </button>
+    <button type="button" id="storyViewerSendBtn" class="story-viewer-footer-icon-btn" aria-label="Kirim pesan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Menu opsi cerita (titik tiga): hapus (punya sendiri), bagikan, tutup cerita -->
+<div id="storyOptionsOverlay" class="story-options-overlay">
+  <div class="story-options-sheet">
+    <div class="story-options-handle"></div>
+    <button type="button" class="story-options-item danger" id="storyOptionsDeleteBtn" style="display:none;">Hapus</button>
+    <div class="story-options-divider" id="storyOptionsDivider" style="display:none;"></div>
+    <button type="button" class="story-options-item" id="storyOptionsShareBtn">Bagikan</button>
+    <div class="story-options-divider"></div>
+    <button type="button" class="story-options-item" id="storyOptionsCloseStoryBtn">Tutup Cerita</button>
+    <div class="story-options-divider"></div>
+    <button type="button" class="story-options-item" id="storyOptionsCancelBtn">Batal</button>
+  </div>
+</div>
+
+<!-- Panel "Orang yang melihat cerita Anda" (muncul kalau swipe up di cerita sendiri) -->
+<div id="storyViewersOverlay" class="story-viewers-overlay">
+  <div class="story-viewers-topbar">
+    <button type="button" id="storyViewersSettingsBtn" class="story-viewer-icon-btn" aria-label="Pengaturan cerita">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+    <button type="button" id="storyViewersCloseBtn" class="story-viewer-icon-btn" aria-label="Tutup">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div class="story-viewers-thumbs" id="storyViewersThumbs"></div>
+  <div class="story-viewers-handle"></div>
+  <div class="story-viewers-statsrow">
+    <div class="story-viewers-count">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      <span id="storyViewersCount">0</span>
+    </div>
+    <div class="story-viewers-stats-actions">
+      <button type="button" id="storyViewersHighlightBtn" class="story-viewer-icon-btn" aria-label="Tambah ke sorotan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"></path>
+        </svg>
+      </button>
+      <button type="button" id="storyViewersDeleteBtn" class="story-viewer-icon-btn" aria-label="Hapus cerita">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+          <path d="M10 11v6"></path>
+          <path d="M14 11v6"></path>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="story-viewers-title">Orang yang melihat cerita Anda</div>
+  <div class="story-viewers-list" id="storyViewersList"></div>
 </div>
 
 <!-- Halaman Profil (dibuka dari nama sendiri / nama di postingan & komentar) -->
@@ -3158,10 +3523,27 @@
   const storyViewerUsername = document.getElementById('storyViewerUsername');
   const storyViewerTime = document.getElementById('storyViewerTime');
   const storyViewerMedia = document.getElementById('storyViewerMedia');
-  const storyViewerCloseBtn = document.getElementById('storyViewerCloseBtn');
-  const storyViewerDeleteBtn = document.getElementById('storyViewerDeleteBtn');
+  const storyViewerMenuBtn = document.getElementById('storyViewerMenuBtn');
   const storyViewerPrevZone = document.getElementById('storyViewerPrevZone');
   const storyViewerNextZone = document.getElementById('storyViewerNextZone');
+  const storyViewerFooter = document.getElementById('storyViewerFooter');
+  const storyViewerReplyInput = document.getElementById('storyViewerReplyInput');
+  const storyViewerLikeBtn = document.getElementById('storyViewerLikeBtn');
+  const storyViewerSendBtn = document.getElementById('storyViewerSendBtn');
+  const storyOptionsOverlay = document.getElementById('storyOptionsOverlay');
+  const storyOptionsDeleteBtn = document.getElementById('storyOptionsDeleteBtn');
+  const storyOptionsDivider = document.getElementById('storyOptionsDivider');
+  const storyOptionsShareBtn = document.getElementById('storyOptionsShareBtn');
+  const storyOptionsCloseStoryBtn = document.getElementById('storyOptionsCloseStoryBtn');
+  const storyOptionsCancelBtn = document.getElementById('storyOptionsCancelBtn');
+  const storyViewersOverlay = document.getElementById('storyViewersOverlay');
+  const storyViewersSettingsBtn = document.getElementById('storyViewersSettingsBtn');
+  const storyViewersCloseBtn = document.getElementById('storyViewersCloseBtn');
+  const storyViewersThumbs = document.getElementById('storyViewersThumbs');
+  const storyViewersCount = document.getElementById('storyViewersCount');
+  const storyViewersHighlightBtn = document.getElementById('storyViewersHighlightBtn');
+  const storyViewersDeleteBtn = document.getElementById('storyViewersDeleteBtn');
+  const storyViewersList = document.getElementById('storyViewersList');
 
   // Elemen Notifikasi
   const notifBtn = document.getElementById('notifBtn');
@@ -3609,6 +3991,7 @@
 
   // ===== Fitur Cerita (Stories) — mirip IG Stories, otomatis hilang abis 24 jam =====
   const STORY_TABLE = 'stories';
+  const STORY_VIEWS_TABLE = 'story_views';
   let storyGroups = []; // [{ username, avatarUrl, isMine, items:[...], allViewed }]
   let currentStoryGroupIdx = 0;
   let currentStoryItemIdx = 0;
@@ -3632,6 +4015,57 @@
     // Biar localStorage nggak numpuk terus, batasi cuma simpan 300 id terakhir
     const arr = Array.from(set).slice(-300);
     localStorage.setItem('pap_viewed_stories', JSON.stringify(arr));
+  }
+
+  // Nyimpen cerita mana aja yang udah di-"like" dari device ini (biar tombol love
+  // tetep nyala merah kalau ceritanya dibuka lagi), sama polanya kaya viewed stories.
+  function getLikedStoryIds() {
+    try { return new Set(JSON.parse(localStorage.getItem('pap_liked_stories') || '[]')); }
+    catch (e) { return new Set(); }
+  }
+  function setStoryLiked(id, liked) {
+    const set = getLikedStoryIds();
+    if (liked) set.add(id); else set.delete(id);
+    const arr = Array.from(set).slice(-300);
+    localStorage.setItem('pap_liked_stories', JSON.stringify(arr));
+  }
+
+  // Nyatet siapa aja yang udah nonton cerita ini ke Supabase, biar pemilik cerita bisa
+  // liat daftarnya (swipe up). Cuma dicatat kalau nama diisi & bukan cerita sendiri;
+  // upsert biar 1 orang cuma kehitung 1x per cerita walau dibuka berkali-kali.
+  async function recordStoryView(storyId) {
+    const viewer = usernameInput.value.trim();
+    if (!viewer) return;
+    try {
+      await sb.from(STORY_VIEWS_TABLE)
+        .upsert({ story_id: storyId, viewer_name: viewer }, { onConflict: 'story_id,viewer_name', ignoreDuplicates: true });
+    } catch (e) {
+      console.error('Gagal mencatat viewer cerita', e);
+    }
+  }
+
+  // Ambil daftar orang yang udah nonton cerita tertentu (buat panel "Orang yang
+  // melihat cerita Anda"), lengkap sama avatar kalau ada.
+  async function loadStoryViewers(storyId) {
+    try {
+      const { data, error } = await sb
+        .from(STORY_VIEWS_TABLE)
+        .select('*')
+        .eq('story_id', storyId)
+        .order('viewed_at', { ascending: false });
+      if (error) throw error;
+      const rows = data || [];
+      const usernames = [...new Set(rows.map(r => normalizeName(r.viewer_name)).filter(Boolean))];
+      let avatarMap = {};
+      if (usernames.length) {
+        const { data: accRows } = await sb.from(ACCOUNTS_TABLE).select('username, avatar_url').in('username', usernames);
+        (accRows || []).forEach(r => { if (r.avatar_url) avatarMap[r.username] = r.avatar_url; });
+      }
+      return rows.map(r => ({ name: r.viewer_name, avatarUrl: avatarMap[normalizeName(r.viewer_name)] || null }));
+    } catch (e) {
+      console.error('Gagal memuat daftar viewer cerita', e);
+      return [];
+    }
   }
 
   // Ambil cerita yang masih aktif dari Supabase, sekalian beres-beres yang udah expired
@@ -3831,11 +4265,12 @@
     if (currentStoryVideoEl) { currentStoryVideoEl.pause(); currentStoryVideoEl = null; }
     storyViewerOverlay.classList.remove('open');
     storyViewerMedia.innerHTML = '';
+    closeStoryOptions();
+    closeStoryViewersPanel();
     unlockBodyScroll();
     if (!closingStoryViewerFromPopstate && history.state && history.state.papStoryOpen) history.back();
     renderStoriesBar(); // update ring seen/unseen di bar
   }
-  storyViewerCloseBtn.addEventListener('click', closeStoryViewer);
 
   function stopStoryTimer() {
     cancelAnimationFrame(storyProgressRAF);
@@ -3857,6 +4292,7 @@
     if (!item) { closeStoryViewer(); return; }
 
     markStoryViewed(item.id);
+    if (!group.isMine) recordStoryView(item.id);
     storyPaused = false;
 
     // Header
@@ -3870,7 +4306,14 @@
       storyViewerAvatar.style.background = avatarColor(normalizeName(group.username));
       storyViewerAvatar.innerText = initials(group.username);
     }
-    storyViewerDeleteBtn.style.display = group.isMine ? 'flex' : 'none';
+    closeStoryOptions();
+
+    // Footer balas & suka cuma nongol di cerita ORANG LAIN, bukan cerita sendiri
+    storyViewerFooter.style.display = group.isMine ? 'none' : 'flex';
+    storyViewerReplyInput.value = '';
+    const alreadyLiked = getLikedStoryIds().has(item.id);
+    storyViewerLikeBtn.classList.toggle('liked', alreadyLiked);
+    storyViewerLikeBtn.classList.remove('pop');
 
     // Progress bar segmen
     storyViewerProgress.innerHTML = group.items.map((_, i) => `
@@ -3984,7 +4427,39 @@
   attachStoryHoldZone(storyViewerNextZone, goToNextStoryItem);
   attachStoryHoldZone(storyViewerPrevZone, goToPrevStoryItem);
 
-  storyViewerDeleteBtn.addEventListener('click', () => {
+  // ----- Menu titik-tiga: buka/tutup bottom sheet opsi cerita -----
+  function openStoryOptions() {
+    const group = storyGroups[currentStoryGroupIdx];
+    if (!group) return;
+    pauseStory();
+    const showDelete = !!group.isMine;
+    storyOptionsDeleteBtn.style.display = showDelete ? 'block' : 'none';
+    storyOptionsDivider.style.display = showDelete ? 'block' : 'none';
+    storyOptionsOverlay.classList.add('open');
+  }
+  function closeStoryOptions() {
+    if (!storyOptionsOverlay.classList.contains('open')) return;
+    storyOptionsOverlay.classList.remove('open');
+    if (storyViewerOverlay.classList.contains('open')) resumeStory();
+  }
+  storyViewerMenuBtn.addEventListener('click', openStoryOptions);
+  storyOptionsOverlay.addEventListener('click', (e) => {
+    if (e.target === storyOptionsOverlay) closeStoryOptions();
+  });
+  storyOptionsCancelBtn.addEventListener('click', closeStoryOptions);
+
+  storyOptionsShareBtn.addEventListener('click', () => {
+    const group = storyGroups[currentStoryGroupIdx];
+    closeStoryOptions();
+    if (group) shareProfile(normalizeName(group.username));
+  });
+
+  storyOptionsCloseStoryBtn.addEventListener('click', () => {
+    closeStoryOptions();
+    closeStoryViewer();
+  });
+
+  function confirmDeleteCurrentStory() {
     const group = storyGroups[currentStoryGroupIdx];
     const item = group && group.items[currentStoryItemIdx];
     if (!item) return;
@@ -3996,6 +4471,7 @@
           const { error } = await sb.from(STORY_TABLE).delete().eq('id', item.id);
           if (error) throw error;
           showToast('Cerita berhasil dihapus');
+          closeStoryViewersPanel();
           closeStoryViewer();
           await loadStories();
         } catch (e) {
@@ -4008,6 +4484,185 @@
       'Ya, Hapus',
       'Batal'
     );
+  }
+
+  storyOptionsDeleteBtn.addEventListener('click', () => {
+    closeStoryOptions();
+    confirmDeleteCurrentStory();
+  });
+
+  // ----- Panel "Orang yang melihat cerita Anda" (swipe up di cerita sendiri) -----
+  function renderStoryViewersThumbs() {
+    const group = storyGroups[currentStoryGroupIdx];
+    if (!group) return;
+    storyViewersThumbs.innerHTML = group.items.map((it, i) => {
+      const mediaTag = it.media_type === 'video'
+        ? `<video src="${it.media_url}" muted playsinline></video>`
+        : `<img src="${it.media_url}" alt="">`;
+      return `<div class="story-viewers-thumb ${i === currentStoryItemIdx ? 'active' : ''}" data-idx="${i}">${mediaTag}</div>`;
+    }).join('') + `
+      <div class="story-viewers-thumb-add" id="storyViewersAddTile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+      </div>`;
+  }
+
+  async function renderStoryViewersList() {
+    const group = storyGroups[currentStoryGroupIdx];
+    const item = group && group.items[currentStoryItemIdx];
+    if (!item) return;
+    storyViewersList.innerHTML = `<div class="story-viewers-empty">Memuat...</div>`;
+    const viewers = await loadStoryViewers(item.id);
+    storyViewersCount.innerText = String(viewers.length);
+    if (viewers.length === 0) {
+      storyViewersList.innerHTML = `<div class="story-viewers-empty">belum ada yang nonton cerita ini~ 👀</div>`;
+      return;
+    }
+    storyViewersList.innerHTML = viewers.map(v => {
+      const avatarHtml = v.avatarUrl
+        ? `<span class="story-viewer-row-avatar" style="background-image:url('${esc(v.avatarUrl)}')"></span>`
+        : `<span class="story-viewer-row-avatar" style="background:${avatarColor(normalizeName(v.name))}">${esc(initials(v.name))}</span>`;
+      return `
+        <div class="story-viewer-row" data-viewer="${esc(v.name)}">
+          ${avatarHtml}
+          <span class="story-viewer-row-name">${esc(v.name)}</span>
+          <div class="story-viewer-row-actions">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function openStoryViewersPanel() {
+    const group = storyGroups[currentStoryGroupIdx];
+    if (!group || !group.isMine) return;
+    pauseStory();
+    renderStoryViewersThumbs();
+    renderStoryViewersList();
+    storyViewersOverlay.classList.add('open');
+  }
+  function closeStoryViewersPanel() {
+    if (!storyViewersOverlay.classList.contains('open')) return;
+    storyViewersOverlay.classList.remove('open');
+    if (storyViewerOverlay.classList.contains('open')) resumeStory();
+  }
+  storyViewersCloseBtn.addEventListener('click', closeStoryViewersPanel);
+  storyViewersDeleteBtn.addEventListener('click', () => {
+    closeStoryViewersPanel();
+    confirmDeleteCurrentStory();
+  });
+  storyViewersHighlightBtn.addEventListener('click', () => {
+    showToast('Fitur sorotan belum tersedia 😅');
+  });
+  storyViewersSettingsBtn.addEventListener('click', () => {
+    showToast('Pengaturan cerita belum tersedia 😅');
+  });
+  storyViewersThumbs.addEventListener('click', (e) => {
+    if (e.target.closest('#storyViewersAddTile')) {
+      closeStoryViewersPanel();
+      triggerStoryFilePicker();
+      return;
+    }
+    const thumb = e.target.closest('.story-viewers-thumb');
+    if (!thumb) return;
+    currentStoryItemIdx = parseInt(thumb.dataset.idx, 10);
+    showCurrentStoryItem();
+    pauseStory();
+    renderStoryViewersThumbs();
+    renderStoryViewersList();
+  });
+  storyViewersList.addEventListener('click', (e) => {
+    const row = e.target.closest('.story-viewer-row');
+    if (!row) return;
+    const viewerName = row.dataset.viewer;
+    closeStoryViewersPanel();
+    closeStoryViewer();
+    setTimeout(() => openProfile(viewerName), 250);
+  });
+
+  // ----- Swipe ke bawah buat nutup viewer (gantiin tombol X yang udah dilepas) -----
+  let storySwipeStartX = 0, storySwipeStartY = 0, storySwipeActive = false;
+  storyViewerOverlay.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.story-viewer-footer') || e.target.closest('.story-options-sheet')) {
+      storySwipeActive = false;
+      return;
+    }
+    storySwipeStartX = e.clientX;
+    storySwipeStartY = e.clientY;
+    storySwipeActive = true;
+  });
+  storyViewerOverlay.addEventListener('pointerup', (e) => {
+    if (!storySwipeActive) return;
+    storySwipeActive = false;
+    const dx = e.clientX - storySwipeStartX;
+    const dy = e.clientY - storySwipeStartY;
+    if (dy > 90 && dy > Math.abs(dx) * 1.5) {
+      closeStoryViewer();
+    } else if (dy < -70 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+      const group = storyGroups[currentStoryGroupIdx];
+      if (group && group.isMine) openStoryViewersPanel();
+    }
+  });
+
+
+  // ----- Suka & balas cerita orang lain (mirip footer "Kirim pesan" di IG Stories) -----
+  storyViewerLikeBtn.addEventListener('click', async () => {
+    const group = storyGroups[currentStoryGroupIdx];
+    const item = group && group.items[currentStoryItemIdx];
+    if (!item || group.isMine) return;
+
+    const myName = usernameInput.value.trim();
+    if (!myName) {
+      pauseStory();
+      showNameModal(() => resumeStory());
+      return;
+    }
+
+    const nowLiked = !storyViewerLikeBtn.classList.contains('liked');
+    storyViewerLikeBtn.classList.toggle('liked', nowLiked);
+    setStoryLiked(item.id, nowLiked);
+    storyViewerLikeBtn.classList.remove('pop');
+    void storyViewerLikeBtn.offsetWidth; // reset biar animasi bisa jalan ulang
+    storyViewerLikeBtn.classList.add('pop');
+
+    if (nowLiked) {
+      insertNotification({ recipientName: group.username, actorName: myName, type: 'story_like' });
+    } else {
+      removeNotification({ recipientName: group.username, actorName: myName, type: 'story_like' });
+    }
+  });
+
+  function sendStoryReply() {
+    const group = storyGroups[currentStoryGroupIdx];
+    const item = group && group.items[currentStoryItemIdx];
+    if (!item || group.isMine) return;
+    const val = storyViewerReplyInput.value.trim();
+    if (!val) return;
+
+    const myName = usernameInput.value.trim();
+    if (!myName) {
+      pauseStory();
+      showNameModal(() => resumeStory());
+      return;
+    }
+
+    insertNotification({ recipientName: group.username, actorName: myName, type: 'story_reply', previewText: val });
+    storyViewerReplyInput.value = '';
+    storyViewerReplyInput.blur();
+    showToast('Pesan kamu terkirim! 💌');
+    resumeStory();
+  }
+  storyViewerSendBtn.addEventListener('click', sendStoryReply);
+  storyViewerReplyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); sendStoryReply(); }
+  });
+  // Cerita dijeda selama user lagi ngetik balasan, sama kaya waktu ditahan (hold) di IG
+  storyViewerReplyInput.addEventListener('focus', pauseStory);
+  storyViewerReplyInput.addEventListener('blur', () => {
+    if (storyViewerOverlay.classList.contains('open')) resumeStory();
   });
 
   // ===== Halaman Profil (dibuka dari nama sendiri, atau nama di postingan/komentar) =====
@@ -4750,12 +5405,16 @@
     if (type === 'like') return '❤️';
     if (type === 'reply') return '↩️';
     if (type === 'follow') return '➕';
+    if (type === 'story_like') return '❤️';
+    if (type === 'story_reply') return '💌';
     return '💬';
   }
   function notifActionText(type) {
     if (type === 'like') return 'nge-like postingan kamu';
     if (type === 'reply') return 'membalas komentar kamu';
     if (type === 'follow') return 'mulai follow kamu';
+    if (type === 'story_like') return 'nge-like cerita kamu';
+    if (type === 'story_reply') return 'membalas cerita kamu';
     return 'komentar di postingan kamu';
   }
 
@@ -5110,8 +5769,9 @@
     markNotificationRead(notifId);
     closeNotifPanel();
 
-    // Notif follow gak nempel ke postingan manapun — arahkan ke profil orang yang follow.
-    if (type === 'follow') {
+    // Notif follow & interaksi cerita gak nempel ke postingan manapun — arahkan ke
+    // profil orang yang follow / yang like-balas cerita kita.
+    if (type === 'follow' || type === 'story_like' || type === 'story_reply') {
       if (notif?.actor_name) setTimeout(() => openProfile(notif.actor_name), 250);
       return;
     }
