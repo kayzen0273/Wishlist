@@ -1591,6 +1591,262 @@
     .notif-btn{ top:14px; right:12px; width:40px; height:40px; }
   }
 
+  /* ===== Pesan (chat inbox & thread) ===== */
+  .chat-list-overlay, .chat-thread-overlay{
+    position:fixed;
+    inset:0;
+    background:var(--paper);
+    z-index:600;
+    display:flex;
+    flex-direction:column;
+    transform:translateY(100%);
+    transition:transform .35s cubic-bezier(0.32,0.94,0.6,1);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+  .chat-list-overlay.open, .chat-thread-overlay.open{ transform:translateY(0); }
+  @media (min-width:641px){
+    .chat-list-overlay, .chat-thread-overlay{
+      max-width:480px;
+      margin:0 auto;
+      border-left:2px solid var(--paper-edge);
+      border-right:2px solid var(--paper-edge);
+      box-shadow:0 -5px 30px rgba(0,0,0,0.25);
+      border-radius:20px 20px 0 0;
+      height:94vh;
+      top:6vh;
+      bottom:0;
+      inset:auto 0 0 0;
+    }
+  }
+  .chat-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:16px 18px;
+    border-bottom:2px dashed var(--paper-edge);
+    background:var(--paper);
+    flex-shrink:0;
+  }
+  .chat-header h3{ margin:0; font-size:17px; font-weight:800; flex:1; }
+  .chat-icon-btn{
+    width:34px; height:34px;
+    flex-shrink:0;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .chat-icon-btn:hover{ background:rgba(58,42,28,0.08); color:var(--ink); }
+  .chat-icon-btn svg{ width:19px; height:19px; }
+  .chat-thread-user{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1;
+    min-width:0;
+    cursor:pointer;
+  }
+  .chat-thread-avatar{
+    width:36px; height:36px;
+    border-radius:50%;
+    background:var(--tape-blue);
+    color:#fff;
+    font-weight:800;
+    font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    background-size:cover;
+    background-position:center;
+  }
+  .chat-thread-name{
+    font-weight:800;
+    font-size:15px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .chat-new-row{
+    display:flex;
+    gap:8px;
+    padding:12px 16px;
+    border-bottom:2px dashed var(--paper-edge);
+    flex-shrink:0;
+  }
+  .chat-new-row input{
+    flex:1;
+    min-width:0;
+    border:1.5px solid var(--paper-edge);
+    border-radius:999px;
+    padding:9px 14px;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:13.5px;
+    background:#fff;
+    color:var(--ink);
+    outline:none;
+  }
+  .chat-new-row button{
+    border:none;
+    background:var(--tape-blue);
+    color:#fff;
+    font-weight:700;
+    font-size:13px;
+    border-radius:999px;
+    padding:0 16px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .chat-new-suggestions{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .2s ease;
+    flex-shrink:0;
+  }
+  .chat-new-suggestions.show{ max-height:220px; overflow-y:auto; }
+  .chat-suggestion-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 18px;
+    cursor:pointer;
+  }
+  .chat-suggestion-item:hover{ background:rgba(58,42,28,0.05); }
+
+  .chat-list{
+    flex:1;
+    overflow-y:auto;
+    padding:6px 0;
+  }
+  .chat-list-empty{
+    padding:60px 24px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-family:'Caveat', cursive;
+    font-size:19px;
+    line-height:1.5;
+  }
+  .chat-list-item{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    padding:12px 16px;
+    cursor:pointer;
+    border-bottom:1px solid rgba(58,42,28,0.08);
+    transition:background .15s ease;
+  }
+  .chat-list-item:hover{ background:rgba(58,42,28,0.05); }
+  .chat-list-item.unread .chat-list-preview,
+  .chat-list-item.unread .chat-list-name{ font-weight:800; color:var(--ink); }
+  .chat-list-avatar{
+    width:46px; height:46px;
+    border-radius:50%;
+    background:var(--tape-blue);
+    color:#fff;
+    font-weight:800;
+    font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    background-size:cover;
+    background-position:center;
+  }
+  .chat-list-body{ flex:1; min-width:0; }
+  .chat-list-name{ font-size:14px; font-weight:700; color:var(--ink); }
+  .chat-list-preview{
+    margin-top:2px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .chat-list-meta{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:6px;
+  }
+  .chat-list-time{ font-size:11px; color:var(--ink-soft); opacity:0.8; }
+  .chat-list-dot{
+    width:9px; height:9px;
+    border-radius:50%;
+    background:var(--pin-red);
+    display:none;
+  }
+  .chat-list-item.unread .chat-list-dot{ display:block; }
+
+  .chat-thread-body{
+    flex:1;
+    overflow-y:auto;
+    padding:14px 14px 6px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .chat-bubble-row{ display:flex; }
+  .chat-bubble-row.mine{ justify-content:flex-end; }
+  .chat-bubble{
+    max-width:75%;
+    padding:9px 13px;
+    border-radius:16px;
+    font-size:13.5px;
+    line-height:1.4;
+    word-break:break-word;
+    background:#fff;
+    border:1.5px solid var(--paper-edge);
+    color:var(--ink);
+  }
+  .chat-bubble-row.mine .chat-bubble{
+    background:var(--tape-blue);
+    border-color:var(--tape-blue);
+    color:#fff;
+  }
+  .chat-thread-empty{
+    padding:50px 24px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-family:'Caveat', cursive;
+    font-size:19px;
+    line-height:1.5;
+  }
+  .chat-thread-footer{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 14px;
+    padding-bottom:calc(10px + env(safe-area-inset-bottom));
+    border-top:2px dashed var(--paper-edge);
+    flex-shrink:0;
+  }
+  .chat-thread-footer input{
+    flex:1;
+    min-width:0;
+    border:1.5px solid var(--paper-edge);
+    border-radius:999px;
+    padding:10px 16px;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    font-size:14px;
+    background:#fff;
+    color:var(--ink);
+    outline:none;
+  }
+  .chat-thread-send-btn{
+    width:38px; height:38px;
+    border-radius:50%;
+    border:none;
+    background:var(--tape-blue);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .chat-thread-send-btn svg{ width:18px; height:18px; }
+  .chat-thread-send-btn[disabled]{ opacity:0.5; cursor:default; }
+  .bnav-chat-wrap{ position:relative; }
+
   /* ===== Nav bar bawah (Home / Cari / Tambah / Profil) ===== */
   .bottom-nav{
     position:fixed;
@@ -2503,6 +2759,7 @@
     flex-direction:column;
     transform:translateY(100%);
     transition:transform 0.3s cubic-bezier(0.32,0.94,0.6,1);
+    touch-action:none;
   }
   .story-composer-overlay.open, .story-viewer-overlay.open{
     transform:translateY(0);
@@ -2987,6 +3244,58 @@
   </div>
 </div>
 
+<!-- Pesan: daftar percakapan -->
+<div class="chat-list-overlay" id="chatListOverlay">
+  <div class="chat-header">
+    <h3>Pesan</h3>
+    <button type="button" class="chat-icon-btn" id="chatListNewBtn" aria-label="Pesan baru">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"></path>
+      </svg>
+    </button>
+    <button type="button" class="chat-icon-btn" id="chatListCloseBtn" aria-label="Tutup">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div class="chat-new-row" id="chatNewRow" style="display:none;">
+    <input type="text" id="chatNewInput" placeholder="Cari nama buat mulai chat..." autocomplete="off">
+    <button type="button" id="chatNewGoBtn">Chat</button>
+  </div>
+  <div class="chat-new-suggestions" id="chatNewSuggestions"></div>
+  <div class="chat-list" id="chatList">
+    <div class="chat-list-empty" id="chatListEmpty">isi nama kamu dulu ya, biar pesannya bisa muncul di sini~ 💌</div>
+  </div>
+</div>
+
+<!-- Pesan: isi obrolan -->
+<div class="chat-thread-overlay" id="chatThreadOverlay">
+  <div class="chat-header">
+    <button type="button" class="chat-icon-btn" id="chatThreadBackBtn" aria-label="Kembali">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <div class="chat-thread-user" id="chatThreadUser">
+      <span class="chat-thread-avatar" id="chatThreadAvatar">?</span>
+      <span class="chat-thread-name" id="chatThreadName">...</span>
+    </div>
+  </div>
+  <div class="chat-thread-body" id="chatThreadBody"></div>
+  <div class="chat-thread-footer">
+    <input type="text" id="chatThreadInput" placeholder="Ketik pesan..." maxlength="500" autocomplete="off">
+    <button type="button" class="chat-thread-send-btn" id="chatThreadSendBtn" aria-label="Kirim">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+</div>
+
 <!-- Nav bar bawah -->
 <nav class="bottom-nav" id="bottomNav" aria-label="Navigasi utama">
   <button type="button" class="bnav-btn active" id="bnavHomeBtn" data-nav="home" aria-label="Beranda">
@@ -3001,6 +3310,14 @@
       <circle cx="11" cy="11" r="7"></circle>
       <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
     </svg>
+  </button>
+  <button type="button" class="bnav-btn bnav-btn-chat" id="bnavChatBtn" data-nav="chat" aria-label="Pesan">
+    <span class="bnav-chat-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <span class="notif-badge" id="chatBadge">0</span>
+    </span>
   </button>
   <button type="button" class="bnav-btn bnav-btn-add" id="bnavAddBtn" data-nav="add" aria-label="Tambah postingan">
     <span class="bnav-add-icon">
@@ -3555,10 +3872,31 @@
   const notifList = document.getElementById('notifList');
   const notifEmpty = document.getElementById('notifEmpty');
 
+  // Elemen Pesan (chat)
+  const chatListOverlay = document.getElementById('chatListOverlay');
+  const chatListCloseBtn = document.getElementById('chatListCloseBtn');
+  const chatListNewBtn = document.getElementById('chatListNewBtn');
+  const chatNewRow = document.getElementById('chatNewRow');
+  const chatNewInput = document.getElementById('chatNewInput');
+  const chatNewGoBtn = document.getElementById('chatNewGoBtn');
+  const chatNewSuggestions = document.getElementById('chatNewSuggestions');
+  const chatList = document.getElementById('chatList');
+  const chatListEmpty = document.getElementById('chatListEmpty');
+  const chatThreadOverlay = document.getElementById('chatThreadOverlay');
+  const chatThreadBackBtn = document.getElementById('chatThreadBackBtn');
+  const chatThreadUser = document.getElementById('chatThreadUser');
+  const chatThreadAvatar = document.getElementById('chatThreadAvatar');
+  const chatThreadName = document.getElementById('chatThreadName');
+  const chatThreadBody = document.getElementById('chatThreadBody');
+  const chatThreadInput = document.getElementById('chatThreadInput');
+  const chatThreadSendBtn = document.getElementById('chatThreadSendBtn');
+  const chatBadge = document.getElementById('chatBadge');
+
   // Elemen Nav Bar Bawah
   const bottomNav = document.getElementById('bottomNav');
   const bnavHomeBtn = document.getElementById('bnavHomeBtn');
   const bnavSearchBtn = document.getElementById('bnavSearchBtn');
+  const bnavChatBtn = document.getElementById('bnavChatBtn');
   const bnavAddBtn = document.getElementById('bnavAddBtn');
   const bnavProfileBtn = document.getElementById('bnavProfileBtn');
   const bnavAvatar = document.getElementById('bnavAvatar');
@@ -3829,6 +4167,7 @@
     confirmedUsername = val;
     localStorage.setItem('pap_username', val);
     loadNotifications();
+    loadConversations();
     loadMyAccountCache();
   }
 
@@ -4399,21 +4738,30 @@
   // Tap kiri/kanan buat navigasi, tapi kalau ditahan (>200ms) ceritanya dijeda
   // dulu (kaya di IG) sampai dilepas, bukan langsung pindah cerita.
   function attachStoryHoldZone(zoneEl, navigateFn) {
+    let zoneStartX = 0, zoneStartY = 0;
     const start = (e) => {
       storyHoldTriggered = false;
+      zoneStartX = e.clientX;
+      zoneStartY = e.clientY;
       clearTimeout(storyHoldTimer);
       storyHoldTimer = setTimeout(() => {
         storyHoldTriggered = true;
         pauseStory();
       }, 200);
     };
-    const end = () => {
+    const end = (e) => {
       clearTimeout(storyHoldTimer);
       if (storyHoldTriggered) {
         resumeStory();
-      } else {
-        navigateFn();
+        return;
       }
+      // Kalau jarinya bergeser cukup jauh (swipe naik/turun/samping), ini BUKAN tap
+      // buat navigasi cerita — biarkan listener swipe di level overlay yang nanganin
+      // (misal buka panel "dilihat oleh" pas swipe up, atau nutup viewer pas swipe down).
+      const dx = (e.clientX ?? zoneStartX) - zoneStartX;
+      const dy = (e.clientY ?? zoneStartY) - zoneStartY;
+      if (Math.hypot(dx, dy) > 24) return;
+      navigateFn();
     };
     const cancel = () => {
       clearTimeout(storyHoldTimer);
@@ -5586,9 +5934,353 @@
   notifOverlay.addEventListener('click', closeNotifPanel);
   notifMarkAllBtn.addEventListener('click', markAllNotificationsRead);
 
+  // ===== Pesan (chat DM) — daftar obrolan & isi obrolan per orang =====
+  const CHAT_TABLE = 'messages';
+  let conversations = []; // [{ partnerKey, partnerName, lastMessage, lastTime, unreadCount, avatarUrl }]
+  let activeChatPartner = null; // key (normalized) lawan bicara yang lagi dibuka
+  let chatThreadMessages = [];
+
+  function updateChatBadge() {
+    const total = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+    chatBadge.innerText = total > 9 ? '9+' : String(total);
+    chatBadge.classList.toggle('show', total > 0);
+  }
+
+  // Ambil semua pesan yang nyangkut nama kita (baik sebagai pengirim maupun penerima),
+  // terus dikelompokkin per lawan bicara jadi daftar obrolan (kayak inbox DM).
+  async function loadConversations() {
+    const me = normalizeName(usernameInput.value);
+    if (!me) {
+      conversations = [];
+      renderChatList();
+      updateChatBadge();
+      return;
+    }
+    try {
+      const [{ data: sent, error: e1 }, { data: recv, error: e2 }] = await Promise.all([
+        sb.from(CHAT_TABLE).select('*').eq('sender_name', me).order('created_at', { ascending: false }).limit(300),
+        sb.from(CHAT_TABLE).select('*').eq('recipient_name', me).order('created_at', { ascending: false }).limit(300)
+      ]);
+      if (e1) throw e1;
+      if (e2) throw e2;
+      const rows = [...(sent || []), ...(recv || [])];
+      const map = new Map();
+      rows.forEach(r => {
+        const senderKey = normalizeName(r.sender_name);
+        const recipientKey = normalizeName(r.recipient_name);
+        const partnerKey = senderKey === me ? recipientKey : senderKey;
+        if (!partnerKey || partnerKey === me) return;
+        const existing = map.get(partnerKey);
+        if (!existing || new Date(r.created_at) > new Date(existing.lastTime)) {
+          map.set(partnerKey, {
+            partnerKey,
+            partnerName: partnerKey,
+            lastMessage: r.content,
+            lastTime: r.created_at,
+            unreadCount: existing ? existing.unreadCount : 0,
+            avatarUrl: null
+          });
+        }
+        if (!map.has(partnerKey)) return;
+        if (recipientKey === me && !r.is_read) map.get(partnerKey).unreadCount++;
+      });
+      conversations = Array.from(map.values()).sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
+      const partnerKeys = conversations.map(c => c.partnerKey);
+      if (partnerKeys.length) {
+        const { data: accRows } = await sb.from(ACCOUNTS_TABLE).select('username, avatar_url').in('username', partnerKeys);
+        const avatarMap = {};
+        (accRows || []).forEach(r => { if (r.avatar_url) avatarMap[r.username] = r.avatar_url; });
+        conversations.forEach(c => { c.avatarUrl = avatarMap[c.partnerKey] || null; });
+      }
+    } catch (e) {
+      console.error('Gagal memuat daftar pesan', e);
+    }
+    renderChatList();
+    updateChatBadge();
+  }
+
+  function renderChatList() {
+    const me = normalizeName(usernameInput.value);
+    if (!me) {
+      chatList.innerHTML = '';
+      chatListEmpty.innerText = 'isi nama kamu dulu ya, biar pesannya bisa muncul di sini~ 💌';
+      chatList.appendChild(chatListEmpty);
+      return;
+    }
+    if (!conversations.length) {
+      chatList.innerHTML = '';
+      chatListEmpty.innerText = 'belum ada obrolan nih. Pencet ✏️ di pojok kanan atas buat mulai chat baru~';
+      chatList.appendChild(chatListEmpty);
+      return;
+    }
+    chatList.innerHTML = conversations.map(c => {
+      const avatarStyle = c.avatarUrl
+        ? `style="background-image:url('${esc(c.avatarUrl)}')"`
+        : `style="background:${avatarColor(c.partnerKey)}"`;
+      return `
+        <div class="chat-list-item ${c.unreadCount > 0 ? 'unread' : ''}" data-partner="${esc(c.partnerKey)}">
+          <span class="chat-list-avatar" ${avatarStyle}>${c.avatarUrl ? '' : esc(initials(c.partnerName))}</span>
+          <div class="chat-list-body">
+            <div class="chat-list-name">${esc(c.partnerName)}</div>
+            <div class="chat-list-preview">${esc(c.lastMessage || '')}</div>
+          </div>
+          <div class="chat-list-meta">
+            <span class="chat-list-time">${timeAgo(c.lastTime)}</span>
+            <span class="chat-list-dot"></span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Nambah/geser obrolan ke atas daftar begitu ada pesan baru masuk/keluar, tanpa nunggu
+  // reload penuh dari Supabase (biar inbox-nya kerasa realtime & responsif).
+  function upsertConversationPreview(partnerKey, content, time, incrementUnread) {
+    let convo = conversations.find(c => c.partnerKey === partnerKey);
+    if (!convo) {
+      convo = { partnerKey, partnerName: partnerKey, lastMessage: content, lastTime: time, unreadCount: 0, avatarUrl: null };
+    } else {
+      conversations = conversations.filter(c => c !== convo);
+    }
+    convo.lastMessage = content;
+    convo.lastTime = time;
+    if (incrementUnread) convo.unreadCount = (convo.unreadCount || 0) + 1;
+    conversations.unshift(convo);
+    renderChatList();
+    updateChatBadge();
+  }
+
+  function openChatList() {
+    closeOtherOverlaysForNav();
+    chatListOverlay.classList.add('open');
+    chatNewRow.style.display = 'none';
+    chatNewSuggestions.classList.remove('show');
+    setActiveNav('chat');
+    loadConversations();
+  }
+  function closeChatList() {
+    chatListOverlay.classList.remove('open');
+    setActiveNav('home');
+  }
+
+  function renderChatThread() {
+    const me = normalizeName(usernameInput.value);
+    if (!chatThreadMessages.length) {
+      chatThreadBody.innerHTML = `<div class="chat-thread-empty">belum ada obrolan, mulai ngobrol yuk~ 👋</div>`;
+      return;
+    }
+    chatThreadBody.innerHTML = chatThreadMessages.map(m => {
+      const mine = normalizeName(m.sender_name) === me;
+      return `<div class="chat-bubble-row ${mine ? 'mine' : ''}"><div class="chat-bubble">${esc(m.content)}</div></div>`;
+    }).join('');
+    chatThreadBody.scrollTop = chatThreadBody.scrollHeight;
+  }
+
+  async function loadChatThread(partner) {
+    const me = normalizeName(usernameInput.value);
+    try {
+      const [{ data: a, error: ea }, { data: b, error: eb }] = await Promise.all([
+        sb.from(CHAT_TABLE).select('*').eq('sender_name', me).eq('recipient_name', partner).order('created_at', { ascending: true }).limit(300),
+        sb.from(CHAT_TABLE).select('*').eq('sender_name', partner).eq('recipient_name', me).order('created_at', { ascending: true }).limit(300)
+      ]);
+      if (ea) throw ea;
+      if (eb) throw eb;
+      chatThreadMessages = [...(a || []), ...(b || [])].sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
+    } catch (e) {
+      console.error('Gagal memuat isi obrolan', e);
+      chatThreadMessages = [];
+    }
+    if (activeChatPartner === partner) renderChatThread();
+    markChatThreadRead(partner);
+  }
+
+  async function markChatThreadRead(partner) {
+    const me = normalizeName(usernameInput.value);
+    const unreadIds = chatThreadMessages
+      .filter(m => normalizeName(m.recipient_name) === me && normalizeName(m.sender_name) === partner && !m.is_read)
+      .map(m => m.id)
+      .filter(id => typeof id !== 'string' || !id.startsWith('tmp-'));
+    if (!unreadIds.length) return;
+    chatThreadMessages.forEach(m => { if (unreadIds.includes(m.id)) m.is_read = true; });
+    const convo = conversations.find(c => c.partnerKey === partner);
+    if (convo) convo.unreadCount = 0;
+    renderChatList();
+    updateChatBadge();
+    try {
+      const { error } = await sb.from(CHAT_TABLE).update({ is_read: true }).in('id', unreadIds);
+      if (error) throw error;
+    } catch (e) {
+      console.error('Gagal menandai pesan terbaca', e);
+    }
+  }
+
+  function openChatThread(partnerRawName) {
+    const me = normalizeName(usernameInput.value);
+    if (!me) {
+      showToast('isi nama kamu dulu ya buat mulai chat 😅');
+      return;
+    }
+    const partner = normalizeName(partnerRawName);
+    if (!partner) return;
+    if (partner === me) {
+      showToast('nggak bisa chat sama diri sendiri hehe 😅');
+      return;
+    }
+    activeChatPartner = partner;
+    chatThreadName.innerText = partner;
+    const convo = conversations.find(c => c.partnerKey === partner);
+    if (convo && convo.avatarUrl) {
+      chatThreadAvatar.style.backgroundImage = `url('${convo.avatarUrl}')`;
+      chatThreadAvatar.innerText = '';
+    } else {
+      chatThreadAvatar.style.backgroundImage = 'none';
+      chatThreadAvatar.style.background = avatarColor(partner);
+      chatThreadAvatar.innerText = initials(partner);
+    }
+    chatListOverlay.classList.remove('open');
+    chatThreadOverlay.classList.add('open');
+    chatThreadBody.innerHTML = `<div class="chat-thread-empty">Memuat...</div>`;
+    chatThreadMessages = [];
+    loadChatThread(partner);
+  }
+  function closeChatThread() {
+    chatThreadOverlay.classList.remove('open');
+    activeChatPartner = null;
+    chatListOverlay.classList.add('open');
+  }
+
+  async function sendChatMessage() {
+    const partner = activeChatPartner;
+    if (!partner) return;
+    const text = chatThreadInput.value.trim();
+    if (!text) return;
+    const me = normalizeName(usernameInput.value);
+    if (!me) {
+      showToast('isi nama kamu dulu ya 😅');
+      return;
+    }
+    chatThreadInput.value = '';
+    const optimistic = {
+      id: 'tmp-' + Date.now(),
+      sender_name: me,
+      recipient_name: partner,
+      content: text,
+      created_at: new Date().toISOString(),
+      is_read: false
+    };
+    chatThreadMessages.push(optimistic);
+    renderChatThread();
+    try {
+      const { data, error } = await sb.from(CHAT_TABLE)
+        .insert({ sender_name: me, recipient_name: partner, content: text })
+        .select().single();
+      if (error) throw error;
+      const idx = chatThreadMessages.findIndex(m => m.id === optimistic.id);
+      if (idx !== -1) chatThreadMessages[idx] = data;
+      renderChatThread();
+      upsertConversationPreview(partner, data.content, data.created_at, false);
+    } catch (e) {
+      console.error('Gagal mengirim pesan', e);
+      showToast('Gagal ngirim pesan, coba lagi ya 🥲');
+      chatThreadMessages = chatThreadMessages.filter(m => m.id !== optimistic.id);
+      renderChatThread();
+    }
+  }
+
+  function renderChatSuggestions(rawQuery) {
+    const q = rawQuery.trim().toLowerCase();
+    if (!q) {
+      chatNewSuggestions.innerHTML = '';
+      chatNewSuggestions.classList.remove('show');
+      return;
+    }
+    const me = normalizeName(usernameInput.value);
+    const userMap = new Map();
+    posts.forEach(p => {
+      const key = normalizeName(p.user);
+      if (key && key !== me && key.includes(q) && !userMap.has(key)) userMap.set(key, p.user);
+    });
+    const matches = Array.from(userMap.entries()).slice(0, 8);
+    if (!matches.length) {
+      chatNewSuggestions.innerHTML = '';
+      chatNewSuggestions.classList.remove('show');
+      return;
+    }
+    chatNewSuggestions.innerHTML = matches.map(([key, raw]) => `
+      <div class="chat-suggestion-item" data-name="${esc(raw)}">
+        <span class="chat-list-avatar" style="background:${avatarColor(key)}">${esc(initials(raw))}</span>
+        <span>${esc(raw)}</span>
+      </div>`).join('');
+    chatNewSuggestions.classList.add('show');
+  }
+  function startNewChatFromInput() {
+    const val = chatNewInput.value.trim();
+    if (!val) return;
+    chatNewInput.value = '';
+    chatNewRow.style.display = 'none';
+    chatNewSuggestions.innerHTML = '';
+    chatNewSuggestions.classList.remove('show');
+    openChatThread(val);
+  }
+
+  bnavChatBtn.addEventListener('click', openChatList);
+  chatListCloseBtn.addEventListener('click', closeChatList);
+  chatThreadBackBtn.addEventListener('click', closeChatThread);
+  chatThreadUser.addEventListener('click', () => { if (activeChatPartner) openProfile(activeChatPartner); });
+  chatList.addEventListener('click', (e) => {
+    const item = e.target.closest('.chat-list-item');
+    if (!item) return;
+    openChatThread(item.dataset.partner);
+  });
+  chatListNewBtn.addEventListener('click', () => {
+    const show = chatNewRow.style.display === 'none';
+    chatNewRow.style.display = show ? 'flex' : 'none';
+    if (show) chatNewInput.focus();
+    else { chatNewSuggestions.innerHTML = ''; chatNewSuggestions.classList.remove('show'); }
+  });
+  chatNewInput.addEventListener('input', () => renderChatSuggestions(chatNewInput.value));
+  chatNewInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); startNewChatFromInput(); } });
+  chatNewGoBtn.addEventListener('click', startNewChatFromInput);
+  chatNewSuggestions.addEventListener('click', (e) => {
+    const item = e.target.closest('.chat-suggestion-item');
+    if (!item) return;
+    chatNewInput.value = '';
+    chatNewRow.style.display = 'none';
+    chatNewSuggestions.innerHTML = '';
+    chatNewSuggestions.classList.remove('show');
+    openChatThread(item.dataset.name);
+  });
+  chatThreadSendBtn.addEventListener('click', sendChatMessage);
+  chatThreadInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChatMessage(); } });
+
+  // Update inbox/badge/thread secara realtime tiap ada pesan baru masuk lewat tabel messages
+  function subscribeChatRealtime() {
+    sb.channel('public:messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: CHAT_TABLE }, (payload) => {
+        const me = normalizeName(usernameInput.value);
+        if (!me) return;
+        const row = payload.new;
+        const senderKey = normalizeName(row.sender_name);
+        const recipientKey = normalizeName(row.recipient_name);
+        if (senderKey !== me && recipientKey !== me) return;
+        const partnerKey = senderKey === me ? recipientKey : senderKey;
+        if (activeChatPartner === partnerKey && chatThreadOverlay.classList.contains('open')) {
+          if (!chatThreadMessages.some(m => m.id === row.id)) {
+            chatThreadMessages.push(row);
+            renderChatThread();
+          }
+          if (recipientKey === me) markChatThreadRead(partnerKey);
+        } else if (recipientKey === me) {
+          upsertConversationPreview(partnerKey, row.content, row.created_at, true);
+        }
+      })
+      .subscribe();
+  }
+
+
+
   // ===== Nav bar bawah (Home / Cari / Tambah / Profil) =====
   function setActiveNav(key) {
-    [bnavHomeBtn, bnavSearchBtn, bnavProfileBtn].forEach(btn => {
+    [bnavHomeBtn, bnavSearchBtn, bnavChatBtn, bnavProfileBtn].forEach(btn => {
       btn.classList.toggle('active', btn.dataset.nav === key);
     });
   }
@@ -5599,6 +6291,8 @@
     if (profileOverlay.classList.contains('open')) closeProfile();
     if (searchPanel.classList.contains('open')) closeSearchPanel();
     if (notifPanel.classList.contains('open')) closeNotifPanel();
+    if (chatThreadOverlay.classList.contains('open')) { chatThreadOverlay.classList.remove('open'); activeChatPartner = null; }
+    if (chatListOverlay.classList.contains('open')) chatListOverlay.classList.remove('open');
   }
 
   bnavHomeBtn.addEventListener('click', () => {
@@ -7033,6 +7727,8 @@
   subscribeRealtime();
   loadNotifications();
   subscribeNotificationsRealtime();
+  loadConversations();
+  subscribeChatRealtime();
 })();
 </script>
 
