@@ -2403,6 +2403,271 @@
   }
   #editProfileSaveBtn:active{
     box-shadow:none;
+  }  /* ===== Stories bar (Cerita) ===== */
+  .stories-bar{
+    display:flex;
+    gap:14px;
+    overflow-x:auto;
+    padding:14px 6px 18px;
+    margin-bottom:4px;
+    scrollbar-width:none;
+  }
+  .stories-bar::-webkit-scrollbar{ display:none; }
+  .story-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    width:66px;
+    flex-shrink:0;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    padding:0;
+  }
+  .story-ring{
+    position:relative;
+    width:62px;
+    height:62px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:3px;
+    background:linear-gradient(45deg, var(--pin-red), var(--tape-yellow), var(--tape-pink));
+    flex-shrink:0;
+  }
+  .story-ring.seen{
+    background:var(--paper-edge);
+  }
+  .story-ring-add{
+    background:none;
+    border:none;
+    padding:3px;
+    cursor:pointer;
+  }
+  .story-avatar{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:var(--paper);
+    border:2.5px solid var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:18px;
+    color:#fff;
+    overflow:hidden;
+    background-size:cover;
+    background-position:center;
+  }
+  .story-add-badge{
+    position:absolute;
+    right:-2px;
+    bottom:-2px;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    background:var(--pin-red);
+    color:#fff;
+    border:2.5px solid var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:14px;
+    line-height:1;
+  }
+  .story-name{
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--paper);
+    max-width:66px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    text-align:center;
+  }
+
+  /* ===== Story composer (preview sebelum share) ===== */
+  .story-composer-overlay, .story-viewer-overlay{
+    position:fixed;
+    inset:0;
+    background:#000;
+    z-index:600;
+    display:flex;
+    flex-direction:column;
+    transform:translateY(100%);
+    transition:transform 0.3s cubic-bezier(0.32,0.94,0.6,1);
+  }
+  .story-composer-overlay.open, .story-viewer-overlay.open{
+    transform:translateY(0);
+  }
+  @media (min-width:641px){
+    .story-composer-overlay, .story-viewer-overlay{
+      max-width:480px;
+      margin:0 auto;
+      inset:auto 0 0 0;
+      height:94vh;
+      top:6vh;
+      border-radius:20px 20px 0 0;
+      overflow:hidden;
+    }
+  }
+  .story-composer-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 16px 10px;
+    flex-shrink:0;
+  }
+  .story-composer-title{
+    color:#fff;
+    font-weight:700;
+    font-size:16px;
+  }
+  .story-composer-media{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .story-composer-media img, .story-composer-media video{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+  }
+  .story-composer-bottombar{
+    padding:16px;
+    flex-shrink:0;
+  }
+  .story-composer-share-btn{
+    width:100%;
+    padding:14px 0;
+    border-radius:999px;
+    border:none;
+    background:var(--pin-red);
+    color:#fff;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    box-shadow:0 3px 0 #a83a1b;
+  }
+  .story-composer-share-btn:disabled{ opacity:0.6; }
+  .story-composer-share-btn:active{ box-shadow:none; transform:translateY(2px); }
+
+  /* ===== Story viewer (nonton cerita) ===== */
+  .story-viewer-progress{
+    display:flex;
+    gap:4px;
+    padding:10px 10px 0;
+    flex-shrink:0;
+  }
+  .story-viewer-progress-seg{
+    flex:1;
+    height:3px;
+    border-radius:3px;
+    background:rgba(255,255,255,0.35);
+    overflow:hidden;
+  }
+  .story-viewer-progress-fill{
+    height:100%;
+    width:0%;
+    background:#fff;
+  }
+  .story-viewer-progress-seg.done .story-viewer-progress-fill{ width:100%; }
+  .story-viewer-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px 8px;
+    flex-shrink:0;
+  }
+  .story-viewer-user{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+  }
+  .story-viewer-avatar{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    background:var(--tape-blue);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:13px;
+    flex-shrink:0;
+    background-size:cover;
+    background-position:center;
+  }
+  .story-viewer-username{
+    color:#fff;
+    font-weight:700;
+    font-size:14px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .story-viewer-time{
+    color:rgba(255,255,255,0.7);
+    font-size:12.5px;
+    flex-shrink:0;
+  }
+  .story-viewer-actions{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .story-viewer-icon-btn{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:none;
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:16px;
+  }
+  .story-viewer-media-wrap{
+    flex:1;
+    position:relative;
+    display:flex;
+    overflow:hidden;
+  }
+  .story-viewer-media{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    background:#000;
+  }
+  .story-viewer-media img, .story-viewer-media video{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+  }
+  .story-viewer-nav{
+    position:absolute;
+    inset:0;
+    display:flex;
+    z-index:2;
+  }
+  .story-viewer-nav-prev, .story-viewer-nav-next{
+    flex:1;
+    height:100%;
   }
 </style>
 </head>
@@ -2514,7 +2779,11 @@
 
 <div class="board">
 
-  <div class="compose">
+  <div class="compose" style="display:none;">
+    <!-- Kartu ini sengaja disembunyikan (bukan dihapus dari DOM) karena input di dalamnya
+         (nama, caption) masih dipakai sebagai penyimpanan data oleh fitur lain:
+         ganti nama & hapus akun sekarang lewat menu Pengaturan, dan bikin
+         postingan lewat tombol + di navbar bawah. -->
     <svg class="doodle-arrow" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <path d="M 20 80 Q 50 10 90 40" stroke="var(--tape-pink)" fill="none" stroke-width="4" stroke-linecap="round"/>
       <path d="M 67 38 L 90 40 L 81 18" stroke="var(--tape-pink)" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2526,21 +2795,15 @@
     </div>
     <div class="compose-row">
       <input type="text" id="captionInput" placeholder="spill dong hari ini ngapain? 👀" maxlength="120">
-      <div class="media-menu-wrap" id="mediaMenuWrap">
-        <button type="button" class="media-add-btn" id="mediaAddBtn" aria-label="Tambah media">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
-        <div class="media-add-dropdown" id="mediaAddDropdown">
-          <button type="button" id="mediaAddOption">📎 Tambahkan file atau video</button>
-        </div>
-        <!-- Input gabungan foto & video. accept dibuat terbuka (*/*) supaya HP menampilkan file manager biasa (bukan photo picker galeri terbatas), lalu tipe file divalidasi lewat JS -->
-        <input type="file" id="mediaInput" accept="*/*" multiple style="display:none">
-      </div>
+      <!-- Input gabungan foto & video. accept dibuat terbuka (*/*) supaya HP menampilkan file manager biasa (bukan photo picker galeri terbatas), lalu tipe file divalidasi lewat JS. Dipicu dari tombol + di navbar bawah. -->
+      <input type="file" id="mediaInput" accept="*/*" multiple style="display:none">
     </div>
   </div>
+
+  <div class="stories-bar" id="storiesBar">
+    <!-- Diisi otomatis lewat JS: "Cerita Anda" + cerita orang lain yang masih aktif (<24 jam) -->
+  </div>
+  <input type="file" id="storyMediaInput" accept="image/*,video/*" style="display:none">
 
   <div class="feed" id="feed"></div>
   <div class="empty-state" id="emptyState">masih kosong nih mading-nya! 📌<br>gaskeun pap pertama, biar rame! 🔥</div>
@@ -2582,6 +2845,52 @@
       </span>
       Posting PAP 🚀
     </button>
+  </div>
+</div>
+
+<!-- Composer Cerita: preview media sebelum dibagikan -->
+<div id="storyComposerOverlay" class="story-composer-overlay">
+  <div class="story-composer-topbar">
+    <button type="button" id="storyComposerCloseBtn" class="story-viewer-icon-btn" aria-label="Batal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <div class="story-composer-title">Cerita Baru</div>
+    <div style="width:36px;"></div>
+  </div>
+  <div class="story-composer-media" id="storyComposerMedia"></div>
+  <div class="story-composer-bottombar">
+    <button type="button" id="storyComposerShareBtn" class="story-composer-share-btn">Bagikan ke Cerita 🚀</button>
+  </div>
+</div>
+
+<!-- Viewer Cerita: nonton cerita fullscreen -->
+<div id="storyViewerOverlay" class="story-viewer-overlay">
+  <div class="story-viewer-progress" id="storyViewerProgress"></div>
+  <div class="story-viewer-header">
+    <div class="story-viewer-user">
+      <span class="story-viewer-avatar" id="storyViewerAvatar"></span>
+      <span class="story-viewer-username" id="storyViewerUsername"></span>
+      <span class="story-viewer-time" id="storyViewerTime"></span>
+    </div>
+    <div class="story-viewer-actions">
+      <button type="button" id="storyViewerDeleteBtn" class="story-viewer-icon-btn" aria-label="Hapus cerita" style="display:none;">🗑️</button>
+      <button type="button" id="storyViewerCloseBtn" class="story-viewer-icon-btn" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="story-viewer-media-wrap">
+    <div class="story-viewer-media" id="storyViewerMedia"></div>
+    <div class="story-viewer-nav">
+      <div class="story-viewer-nav-prev" id="storyViewerPrevZone"></div>
+      <div class="story-viewer-nav-next" id="storyViewerNextZone"></div>
+    </div>
   </div>
 </div>
 
@@ -2835,9 +3144,24 @@
   const usernameInput = document.getElementById('usernameInput');
   const deleteAccountBtn = document.getElementById('deleteAccountBtn');
   const mediaInput = document.getElementById('mediaInput');
-  const mediaAddBtn = document.getElementById('mediaAddBtn');
-  const mediaAddDropdown = document.getElementById('mediaAddDropdown');
-  const mediaAddOption = document.getElementById('mediaAddOption');
+
+  // Elemen fitur Cerita (Stories)
+  const storiesBar = document.getElementById('storiesBar');
+  const storyMediaInput = document.getElementById('storyMediaInput');
+  const storyComposerOverlay = document.getElementById('storyComposerOverlay');
+  const storyComposerMedia = document.getElementById('storyComposerMedia');
+  const storyComposerCloseBtn = document.getElementById('storyComposerCloseBtn');
+  const storyComposerShareBtn = document.getElementById('storyComposerShareBtn');
+  const storyViewerOverlay = document.getElementById('storyViewerOverlay');
+  const storyViewerProgress = document.getElementById('storyViewerProgress');
+  const storyViewerAvatar = document.getElementById('storyViewerAvatar');
+  const storyViewerUsername = document.getElementById('storyViewerUsername');
+  const storyViewerTime = document.getElementById('storyViewerTime');
+  const storyViewerMedia = document.getElementById('storyViewerMedia');
+  const storyViewerCloseBtn = document.getElementById('storyViewerCloseBtn');
+  const storyViewerDeleteBtn = document.getElementById('storyViewerDeleteBtn');
+  const storyViewerPrevZone = document.getElementById('storyViewerPrevZone');
+  const storyViewerNextZone = document.getElementById('storyViewerNextZone');
 
   // Elemen Notifikasi
   const notifBtn = document.getElementById('notifBtn');
@@ -3239,6 +3563,7 @@
       console.error('Gagal memuat profil sendiri', e);
     }
     updateMyProfileAvatarBtn();
+    loadStories();
   }
 
   myProfileAvatarBtn.addEventListener('click', () => {
@@ -3282,6 +3607,409 @@
     }
   }
 
+  // ===== Fitur Cerita (Stories) — mirip IG Stories, otomatis hilang abis 24 jam =====
+  const STORY_TABLE = 'stories';
+  let storyGroups = []; // [{ username, avatarUrl, isMine, items:[...], allViewed }]
+  let currentStoryGroupIdx = 0;
+  let currentStoryItemIdx = 0;
+  let storyProgressRAF = null;
+  let storyPaused = false;
+  let storyElapsedMs = 0;
+  let storyItemDuration = 5000;
+  let storyLastFrameTs = null;
+  let currentStoryVideoEl = null;
+  let storyHoldTimer = null;
+  let storyHoldTriggered = false;
+  let pendingStoryFile = null;
+
+  function getViewedStoryIds() {
+    try { return new Set(JSON.parse(localStorage.getItem('pap_viewed_stories') || '[]')); }
+    catch (e) { return new Set(); }
+  }
+  function markStoryViewed(id) {
+    const set = getViewedStoryIds();
+    set.add(id);
+    // Biar localStorage nggak numpuk terus, batasi cuma simpan 300 id terakhir
+    const arr = Array.from(set).slice(-300);
+    localStorage.setItem('pap_viewed_stories', JSON.stringify(arr));
+  }
+
+  // Ambil cerita yang masih aktif dari Supabase, sekalian beres-beres yang udah expired
+  async function loadStories() {
+    try {
+      const nowIso = new Date().toISOString();
+      // Beres-beres cerita expired (best-effort, boleh gagal diem-diem)
+      sb.from(STORY_TABLE).delete().lt('expires_at', nowIso).then(() => {}).catch(() => {});
+
+      const { data, error } = await sb
+        .from(STORY_TABLE)
+        .select('*')
+        .gt('expires_at', nowIso)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+
+      const rows = data || [];
+      const viewed = getViewedStoryIds();
+      const me = normalizeName(usernameInput.value.trim());
+
+      // Kumpulin avatar buat semua username yang punya cerita aktif
+      const usernames = [...new Set(rows.map(r => normalizeName(r.user_name)).filter(Boolean))];
+      let avatarMap = {};
+      if (usernames.length) {
+        const { data: accRows } = await sb.from(ACCOUNTS_TABLE).select('username, avatar_url').in('username', usernames);
+        (accRows || []).forEach(r => { if (r.avatar_url) avatarMap[r.username] = r.avatar_url; });
+      }
+
+      const byUser = {};
+      rows.forEach(r => {
+        const key = normalizeName(r.user_name);
+        if (!byUser[key]) byUser[key] = { username: r.user_name, avatarUrl: avatarMap[key] || null, isMine: key === me, items: [] };
+        byUser[key].items.push(r);
+      });
+
+      let groups = Object.values(byUser).map(g => ({
+        ...g,
+        allViewed: g.items.every(it => viewed.has(it.id))
+      }));
+
+      // Urutan: punya kita duluan (kalau ada), lalu yang belum ditonton, baru yang udah ditonton semua
+      groups.sort((a, b) => {
+        if (a.isMine !== b.isMine) return a.isMine ? -1 : 1;
+        if (a.allViewed !== b.allViewed) return a.allViewed ? 1 : -1;
+        return 0;
+      });
+
+      storyGroups = groups;
+      renderStoriesBar();
+    } catch (e) {
+      console.error('Gagal memuat cerita dari Supabase', e);
+    }
+  }
+
+  function renderStoriesBar() {
+    const me = normalizeName(usernameInput.value.trim());
+    const myGroup = storyGroups.find(g => g.isMine);
+    const otherGroups = storyGroups.filter(g => !g.isMine);
+
+    let html = '';
+
+    // Item "Cerita Anda" — selalu tampil paling depan
+    const myName = usernameInput.value.trim();
+    const myAvatarHtml = myAccountCache.avatar_url
+      ? `<span class="story-avatar" style="background-image:url('${esc(myAccountCache.avatar_url)}')"></span>`
+      : `<span class="story-avatar" style="background:${myName ? avatarColor(me) : 'var(--tape-blue)'}">${myName ? esc(initials(myName)) : '?'}</span>`;
+
+    html += `
+      <div class="story-item" id="storyAddItem">
+        <button type="button" class="story-ring ${myGroup ? (myGroup.allViewed ? 'seen' : '') : 'story-ring-add'}" id="storyAddBtn">
+          ${myAvatarHtml}
+          <span class="story-add-badge" id="storyAddBadge">+</span>
+        </button>
+        <span class="story-name">Cerita Anda</span>
+      </div>`;
+
+    otherGroups.forEach((g, idx) => {
+      const realIdx = storyGroups.indexOf(g);
+      const avatarHtml = g.avatarUrl
+        ? `<span class="story-avatar" style="background-image:url('${esc(g.avatarUrl)}')"></span>`
+        : `<span class="story-avatar" style="background:${avatarColor(normalizeName(g.username))}">${esc(initials(g.username))}</span>`;
+      html += `
+        <button type="button" class="story-item" data-group-idx="${realIdx}">
+          <span class="story-ring ${g.allViewed ? 'seen' : ''}">${avatarHtml}</span>
+          <span class="story-name">${esc(g.username)}</span>
+        </button>`;
+    });
+
+    storiesBar.innerHTML = html;
+
+    // Klik avatar sendiri: kalau punya cerita aktif, buka viewer. Kalau nggak, langsung ke composer.
+    const storyAddBtn = document.getElementById('storyAddBtn');
+    if (storyAddBtn) {
+      storyAddBtn.addEventListener('click', () => {
+        if (myGroup) {
+          openStoryViewer(storyGroups.indexOf(myGroup), 0);
+        } else {
+          triggerStoryFilePicker();
+        }
+      });
+    }
+    // Badge "+" selalu buka file picker buat nambah cerita baru, walau udah punya cerita aktif
+    const storyAddBadge = document.getElementById('storyAddBadge');
+    if (storyAddBadge) {
+      storyAddBadge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerStoryFilePicker();
+      });
+    }
+    storiesBar.querySelectorAll('.story-item[data-group-idx]').forEach(btn => {
+      btn.addEventListener('click', () => openStoryViewer(parseInt(btn.dataset.groupIdx, 10), 0));
+    });
+  }
+
+  function triggerStoryFilePicker() {
+    const name = usernameInput.value.trim();
+    if (!name) {
+      showNameModal(() => triggerStoryFilePicker());
+      return;
+    }
+    storyMediaInput.value = '';
+    storyMediaInput.click();
+  }
+
+  storyMediaInput.addEventListener('change', () => {
+    const file = storyMediaInput.files && storyMediaInput.files[0];
+    if (!file) return;
+    openStoryComposer(file);
+  });
+
+  function openStoryComposer(file) {
+    pendingStoryFile = file;
+    const isVideo = file.type.startsWith('video/');
+    const url = URL.createObjectURL(file);
+    storyComposerMedia.innerHTML = isVideo
+      ? `<video src="${url}" autoplay muted loop playsinline></video>`
+      : `<img src="${url}" alt="">`;
+    storyComposerOverlay.classList.add('open');
+    lockBodyScroll();
+  }
+
+  function closeStoryComposer() {
+    storyComposerOverlay.classList.remove('open');
+    storyComposerMedia.innerHTML = '';
+    pendingStoryFile = null;
+    unlockBodyScroll();
+  }
+  storyComposerCloseBtn.addEventListener('click', closeStoryComposer);
+
+  storyComposerShareBtn.addEventListener('click', async () => {
+    if (!pendingStoryFile) return;
+    const file = pendingStoryFile;
+    const isVideo = file.type.startsWith('video/');
+    const originalHtml = storyComposerShareBtn.innerHTML;
+    storyComposerShareBtn.disabled = true;
+    storyComposerShareBtn.innerText = 'Mengunggah...';
+    try {
+      const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop() : (isVideo ? 'mp4' : 'jpg');
+      const path = `stories/${deviceId}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: upErr } = await sb.storage.from(MEDIA_BUCKET).upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = sb.storage.from(MEDIA_BUCKET).getPublicUrl(path);
+
+      const { error } = await sb.from(STORY_TABLE).insert({
+        user_name: usernameInput.value.trim(),
+        media_type: isVideo ? 'video' : 'image',
+        media_url: pub.publicUrl
+      });
+      if (error) throw error;
+
+      closeStoryComposer();
+      showToast('Cerita kamu berhasil dibagikan! 🎉');
+      await loadStories();
+    } catch (e) {
+      console.error('Gagal membagikan cerita', e);
+      showToast('Gagal membagikan cerita 🥲 Coba lagi ya!');
+    } finally {
+      storyComposerShareBtn.disabled = false;
+      storyComposerShareBtn.innerHTML = originalHtml;
+    }
+  });
+
+  // ----- Viewer cerita -----
+  function openStoryViewer(groupIdx, itemIdx) {
+    if (!storyGroups[groupIdx]) return;
+    currentStoryGroupIdx = groupIdx;
+    currentStoryItemIdx = itemIdx || 0;
+    storyViewerOverlay.classList.add('open');
+    lockBodyScroll();
+    history.pushState({ papStoryOpen: true }, '');
+    showCurrentStoryItem();
+  }
+
+  function closeStoryViewer() {
+    if (!storyViewerOverlay.classList.contains('open')) return;
+    stopStoryTimer();
+    if (currentStoryVideoEl) { currentStoryVideoEl.pause(); currentStoryVideoEl = null; }
+    storyViewerOverlay.classList.remove('open');
+    storyViewerMedia.innerHTML = '';
+    unlockBodyScroll();
+    if (!closingStoryViewerFromPopstate && history.state && history.state.papStoryOpen) history.back();
+    renderStoriesBar(); // update ring seen/unseen di bar
+  }
+  storyViewerCloseBtn.addEventListener('click', closeStoryViewer);
+
+  function stopStoryTimer() {
+    cancelAnimationFrame(storyProgressRAF);
+    storyProgressRAF = null;
+  }
+
+  function setStoryProgressFill(pct) {
+    const segEl = storyViewerProgress.querySelector(`.story-viewer-progress-seg[data-idx="${currentStoryItemIdx}"] .story-viewer-progress-fill`);
+    if (segEl) segEl.style.width = pct + '%';
+  }
+
+  function showCurrentStoryItem() {
+    stopStoryTimer();
+    if (currentStoryVideoEl) { currentStoryVideoEl.pause(); currentStoryVideoEl = null; }
+
+    const group = storyGroups[currentStoryGroupIdx];
+    if (!group) { closeStoryViewer(); return; }
+    const item = group.items[currentStoryItemIdx];
+    if (!item) { closeStoryViewer(); return; }
+
+    markStoryViewed(item.id);
+    storyPaused = false;
+
+    // Header
+    storyViewerUsername.innerText = group.username;
+    storyViewerTime.innerText = timeAgo(item.created_at);
+    if (group.avatarUrl) {
+      storyViewerAvatar.style.backgroundImage = `url('${group.avatarUrl}')`;
+      storyViewerAvatar.innerText = '';
+    } else {
+      storyViewerAvatar.style.backgroundImage = 'none';
+      storyViewerAvatar.style.background = avatarColor(normalizeName(group.username));
+      storyViewerAvatar.innerText = initials(group.username);
+    }
+    storyViewerDeleteBtn.style.display = group.isMine ? 'flex' : 'none';
+
+    // Progress bar segmen
+    storyViewerProgress.innerHTML = group.items.map((_, i) => `
+      <div class="story-viewer-progress-seg ${i < currentStoryItemIdx ? 'done' : ''}" data-idx="${i}">
+        <div class="story-viewer-progress-fill"></div>
+      </div>`).join('');
+
+    // Media
+    if (item.media_type === 'video') {
+      storyViewerMedia.innerHTML = `<video src="${item.media_url}" autoplay playsinline></video>`;
+      const videoEl = storyViewerMedia.querySelector('video');
+      currentStoryVideoEl = videoEl;
+      videoEl.addEventListener('ended', goToNextStoryItem, { once: true });
+      videoEl.play().catch(() => {});
+      storyProgressRAF = requestAnimationFrame(videoProgressTick);
+    } else {
+      storyViewerMedia.innerHTML = `<img src="${item.media_url}" alt="">`;
+      storyItemDuration = 5000; // durasi foto: 5 detik
+      storyElapsedMs = 0;
+      storyLastFrameTs = null;
+      storyProgressRAF = requestAnimationFrame(photoProgressTick);
+    }
+  }
+
+  // Timer buat foto: jalan pakai requestAnimationFrame biar bisa "dijeda" waktu ditahan
+  function photoProgressTick(now) {
+    if (storyLastFrameTs === null) storyLastFrameTs = now;
+    if (!storyPaused) storyElapsedMs += now - storyLastFrameTs;
+    storyLastFrameTs = now;
+    const pct = Math.min(100, (storyElapsedMs / storyItemDuration) * 100);
+    setStoryProgressFill(pct);
+    if (pct >= 100) { goToNextStoryItem(); return; }
+    storyProgressRAF = requestAnimationFrame(photoProgressTick);
+  }
+
+  // Progress buat video: ngikutin currentTime video-nya sendiri (video otomatis
+  // kepause waktu ditahan, jadi progress-nya ikut berhenti juga)
+  function videoProgressTick() {
+    if (!currentStoryVideoEl) return;
+    const dur = currentStoryVideoEl.duration || 0;
+    const pct = dur ? Math.min(100, (currentStoryVideoEl.currentTime / dur) * 100) : 0;
+    setStoryProgressFill(pct);
+    storyProgressRAF = requestAnimationFrame(videoProgressTick);
+  }
+
+  function pauseStory() {
+    storyPaused = true;
+    if (currentStoryVideoEl) currentStoryVideoEl.pause();
+  }
+  function resumeStory() {
+    storyPaused = false;
+    storyLastFrameTs = null;
+    if (currentStoryVideoEl) currentStoryVideoEl.play().catch(() => {});
+  }
+
+  function goToNextStoryItem() {
+    const group = storyGroups[currentStoryGroupIdx];
+    if (group && currentStoryItemIdx < group.items.length - 1) {
+      currentStoryItemIdx++;
+      showCurrentStoryItem();
+    } else if (currentStoryGroupIdx < storyGroups.length - 1) {
+      currentStoryGroupIdx++;
+      currentStoryItemIdx = 0;
+      showCurrentStoryItem();
+    } else {
+      closeStoryViewer();
+    }
+  }
+  function goToPrevStoryItem() {
+    if (currentStoryItemIdx > 0) {
+      currentStoryItemIdx--;
+      showCurrentStoryItem();
+    } else if (currentStoryGroupIdx > 0) {
+      currentStoryGroupIdx--;
+      const prevGroup = storyGroups[currentStoryGroupIdx];
+      currentStoryItemIdx = prevGroup.items.length - 1;
+      showCurrentStoryItem();
+    } else {
+      closeStoryViewer();
+    }
+  }
+
+  // Tap kiri/kanan buat navigasi, tapi kalau ditahan (>200ms) ceritanya dijeda
+  // dulu (kaya di IG) sampai dilepas, bukan langsung pindah cerita.
+  function attachStoryHoldZone(zoneEl, navigateFn) {
+    const start = (e) => {
+      storyHoldTriggered = false;
+      clearTimeout(storyHoldTimer);
+      storyHoldTimer = setTimeout(() => {
+        storyHoldTriggered = true;
+        pauseStory();
+      }, 200);
+    };
+    const end = () => {
+      clearTimeout(storyHoldTimer);
+      if (storyHoldTriggered) {
+        resumeStory();
+      } else {
+        navigateFn();
+      }
+    };
+    const cancel = () => {
+      clearTimeout(storyHoldTimer);
+      if (storyHoldTriggered) resumeStory();
+    };
+    zoneEl.addEventListener('pointerdown', start);
+    zoneEl.addEventListener('pointerup', end);
+    zoneEl.addEventListener('pointerleave', cancel);
+    zoneEl.addEventListener('pointercancel', cancel);
+  }
+  attachStoryHoldZone(storyViewerNextZone, goToNextStoryItem);
+  attachStoryHoldZone(storyViewerPrevZone, goToPrevStoryItem);
+
+  storyViewerDeleteBtn.addEventListener('click', () => {
+    const group = storyGroups[currentStoryGroupIdx];
+    const item = group && group.items[currentStoryItemIdx];
+    if (!item) return;
+    pauseStory();
+    cancelConfirmBtn.addEventListener('click', resumeStory, { once: true });
+    showConfirm(
+      async () => {
+        try {
+          const { error } = await sb.from(STORY_TABLE).delete().eq('id', item.id);
+          if (error) throw error;
+          showToast('Cerita berhasil dihapus');
+          closeStoryViewer();
+          await loadStories();
+        } catch (e) {
+          console.error('Gagal menghapus cerita', e);
+          showToast('Gagal menghapus cerita 🥲');
+        }
+      },
+      'Hapus Cerita?',
+      'Cerita ini bakal dihapus permanen dari mading. Yakin nih?',
+      'Ya, Hapus',
+      'Batal'
+    );
+  });
+
   // ===== Halaman Profil (dibuka dari nama sendiri, atau nama di postingan/komentar) =====
   let currentProfileUsername = null; // versi normalized dari profil yang sedang dibuka
   let currentProfileTab = 'grid'; // 'grid' | 'video' | 'tagged'
@@ -3290,6 +4018,7 @@
   // Dipakai supaya closeProfile() nggak nge-trigger history.back() dua kali waktu
   // dia sendiri dipanggil DARI dalam listener popstate (klik tombol back HP).
   let closingProfileFromPopstate = false;
+  let closingStoryViewerFromPopstate = false;
 
   function closeProfile() {
     if (!profileOverlay.classList.contains('open')) return;
@@ -3379,6 +4108,16 @@
   // Tombol/gesture back bawaan HP (atau tombol back browser): tutup dulu yang paling
   // atas (settings dulu kalau lagi kebuka, baru profil), JANGAN langsung keluar dari mading.
   window.addEventListener('popstate', () => {
+    if (storyViewerOverlay.classList.contains('open')) {
+      closingStoryViewerFromPopstate = true;
+      closeStoryViewer();
+      closingStoryViewerFromPopstate = false;
+      return;
+    }
+    if (storyComposerOverlay.classList.contains('open')) {
+      closeStoryComposer();
+      return;
+    }
     if (settingsOverlay.classList.contains('open')) {
       closingSettingsFromPopstate = true;
       closeSettingsPage();
@@ -4218,6 +4957,9 @@
       setTimeout(() => composeEl.classList.remove('compose-pulse'), 800);
     }
     setTimeout(() => captionInput && captionInput.focus(), 350);
+    // Tombol + di navbar sekaligus jadi pemicu attach file/video (dulu ada tombol + terpisah di compose)
+    isAppending = false;
+    if (mediaInput) mediaInput.click();
   });
 
   bnavProfileBtn.addEventListener('click', () => {
@@ -5479,26 +6221,6 @@
     });
   }
 
-  // Tombol + membuka/menutup menu "Tambahkan file atau video"
-  mediaAddBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    mediaAddDropdown.classList.toggle('open');
-  });
-
-  // Klik opsi menu memicu chooser bawaan HP
-  mediaAddOption.addEventListener('click', () => {
-    mediaAddDropdown.classList.remove('open');
-    isAppending = false;
-    mediaInput.click();
-  });
-
-  // Tutup dropdown kalau klik di luar area tombol +
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('#mediaMenuWrap')) {
-      mediaAddDropdown.classList.remove('open');
-    }
-  });
-
   mediaInput.addEventListener('change', () => {
     handleMediaFiles(mediaInput.files, isAppending);
     mediaInput.value = ''; // Reset input agar bisa dipicu kembali dengan lancar
@@ -5647,6 +6369,7 @@
   window.addEventListener('hashchange', tryOpenProfileFromHash);
 
   loadPosts().then(tryOpenProfileFromHash);
+  loadStories();
   subscribeRealtime();
   loadNotifications();
   subscribeNotificationsRealtime();
