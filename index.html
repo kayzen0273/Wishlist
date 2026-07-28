@@ -1868,6 +1868,18 @@
     transition:transform .2s;
   }
   .profile-back-btn:hover{ transform:scale(1.1); }
+  .profile-back-btn svg{ width:24px; height:24px; flex-shrink:0; }
+  .profile-header-left{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    min-width:0;
+  }
+  .profile-header-left .profile-header-handle{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
   .profile-header-handle{
     font-weight:800;
     font-size:17px;
@@ -1909,6 +1921,23 @@
     display:block;
     margin-top:60px;
   }
+  .user-posts-header{
+    justify-content:flex-start;
+    gap:8px;
+  }
+  .user-posts-title-btn{
+    display:flex;
+    align-items:center;
+    background:none;
+    border:none;
+    padding:6px 4px;
+    margin:0;
+    cursor:pointer;
+    color:inherit;
+    font:inherit;
+  }
+  .user-posts-title-btn .profile-header-handle{ margin:0; }
+  .user-posts-title-btn:active .profile-header-handle{ opacity:0.7; }
 
   /* Angka pengikut/mengikuti di halaman profil dibikin bisa diklik */
   .profile-stat-clickable{
@@ -2002,6 +2031,7 @@
     transition:transform .2s;
   }
   .settings-back-btn:hover{ transform:scale(1.1); }
+  .settings-back-btn svg{ width:22px; height:22px; flex-shrink:0; }
   .settings-title{ font-weight:800; font-size:17px; }
   .settings-search-wrap{
     margin:14px 18px 6px;
@@ -2545,13 +2575,15 @@
 <!-- Halaman Profil (dibuka dari nama sendiri / nama di postingan & komentar) -->
 <div id="profileOverlay" class="profile-overlay">
   <div class="profile-header">
-    <button class="profile-back-btn" id="profileBackBtn" aria-label="Kembali">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
-    </button>
-    <div class="profile-header-handle" id="profileHeaderHandle">@username</div>
+    <div class="profile-header-left">
+      <button class="profile-back-btn" id="profileBackBtn" aria-label="Kembali">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <div class="profile-header-handle" id="profileHeaderHandle">username</div>
+    </div>
     <button class="profile-menu-btn" id="profileMenuBtn" aria-label="Pengaturan dan aktivitas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         <line x1="4" y1="7" x2="20" y2="7"></line>
@@ -2559,6 +2591,7 @@
         <line x1="4" y1="17" x2="20" y2="17"></line>
       </svg>
     </button>
+
   </div>
 
   <div class="profile-content">
@@ -2597,15 +2630,16 @@
      mading umum: cuma nampilin postingan milik 1 orang itu aja, bukan campur sama postingan
      orang lain di mading umum. -->
 <div id="userPostsOverlay" class="profile-overlay user-posts-overlay">
-  <div class="profile-header">
+  <div class="profile-header user-posts-header">
     <button class="profile-back-btn" id="userPostsBackBtn" aria-label="Kembali">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
         <line x1="19" y1="12" x2="5" y2="12"></line>
         <polyline points="12 19 5 12 12 5"></polyline>
       </svg>
     </button>
-    <div class="profile-header-handle" id="userPostsTitle">Postingan</div>
-    <div style="width:36px;"></div>
+    <button class="user-posts-title-btn" id="userPostsTitleBtn" type="button">
+      <span class="profile-header-handle" id="userPostsTitle">Postingan</span>
+    </button>
   </div>
   <div class="user-posts-body" id="userPostsBody"></div>
 </div>
@@ -2899,6 +2933,7 @@
   const profileGrid = document.getElementById('profileGrid');
   const userPostsOverlay = document.getElementById('userPostsOverlay');
   const userPostsBackBtn = document.getElementById('userPostsBackBtn');
+  const userPostsTitleBtn = document.getElementById('userPostsTitleBtn');
   const userPostsTitle = document.getElementById('userPostsTitle');
   const userPostsBody = document.getElementById('userPostsBody');
   const profileStatFollowersBtn = document.getElementById('profileStatFollowersBtn');
@@ -3423,7 +3458,7 @@
   function openUserPosts(key, focusId) {
     if (!key) return;
     feedFilterUser = key;
-    userPostsTitle.innerText = `Postingan @${key}`;
+    userPostsTitle.innerText = 'Postingan';
 
     if (!feedHomeParent) {
       feedHomeParent = feedEl.parentNode;
@@ -3479,6 +3514,18 @@
   // popstate-nya nyampe, listener bakal ngira halaman ini udah ketutup duluan terus ikut
   // nutup halaman profil di bawahnya juga — padahal harusnya cuma balik ke situ, bukan ikut ketutup.
   userPostsBackBtn.addEventListener('click', () => {
+    if (history.state && history.state.papUserPostsOpen) {
+      history.back();
+    } else {
+      closeUserPosts();
+    }
+  });
+
+  // Tombol panah di samping teks "Postingan @username": balik ke halaman profil orang
+  // itu, yang sebenernya emang udah "open" di belakangnya dari awal (lihat komentar di
+  // openUserPosts). Makanya cukup history.back() aja, sama persis kayak tombol back di
+  // atas — biar gak ganggu urutan history / gak ikut nutup profilnya.
+  userPostsTitleBtn.addEventListener('click', () => {
     if (history.state && history.state.papUserPostsOpen) {
       history.back();
     } else {
@@ -3676,7 +3723,7 @@
     profileMenuBtn.classList.toggle('show', isOwn);
 
     // Render dulu versi cepat pakai data yang udah ada di sisi client, biar responsif.
-    profileHeaderHandle.innerText = `@${rawUsername.trim()}`;
+    profileHeaderHandle.innerText = rawUsername.trim();
     profileUsernameSub.innerText = `@${rawUsername.trim()}`;
     profileFullName.innerHTML = '&nbsp;';
     profileAvatarBig.innerHTML = esc(initials(rawUsername));
@@ -3718,7 +3765,7 @@
       const accRows = accRes.data || [];
       const acc = accRows.find(r => r.full_name || r.avatar_url) || accRows[0] || null;
       const handle = (acc && acc.display_name) || rawUsername.trim();
-      profileHeaderHandle.innerText = `@${handle}`;
+      profileHeaderHandle.innerText = handle;
       profileUsernameSub.innerText = `@${handle}`;
       profileFullName.innerText = (acc && acc.full_name) ? acc.full_name : '';
       if (!profileFullName.innerText) profileFullName.innerHTML = '&nbsp;';
