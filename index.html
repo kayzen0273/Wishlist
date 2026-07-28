@@ -24,6 +24,10 @@
   *{box-sizing:border-box;}
   body{margin:0;}
   html{scroll-behavior:smooth;}
+  html, body{
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
+  }
 
   body{
     font-family:'Plus Jakarta Sans', sans-serif;
@@ -39,6 +43,8 @@
     padding-bottom:96px;
     position: relative;
     overflow-x: hidden;
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
   }
 
   /* Noda kopi untuk variasi lucu di background */
@@ -515,6 +521,7 @@
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none; /* Hide scrollbar Firefox */
+    touch-action: pan-x pinch-zoom;
   }
   .polaroid-slider::-webkit-scrollbar {
     display: none; /* Hide scrollbar Chrome/Safari */
@@ -1080,6 +1087,7 @@
     overflow-y: auto;
     padding: 20px;
     padding-bottom: 110px;
+    overscroll-behavior: contain;
   }
 
   /* ===== STREAMING_CHUNK: Organizing grid for subpage images... ===== */
@@ -1889,6 +1897,8 @@
     flex:1;
     overflow-y:auto;
     padding:16px 20px 30px;
+    overscroll-behavior:contain;
+    touch-action: pan-y;
   }
 
   .profile-menu-btn{
@@ -1912,6 +1922,8 @@
     flex:1;
     overflow-y:auto;
     padding:20px 20px 40px;
+    overscroll-behavior:contain;
+    touch-action: pan-y;
     background:
       radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.06) 0%, transparent 55%),
       var(--paper);
@@ -1956,6 +1968,7 @@
     flex:1;
     overflow-y:auto;
     padding:10px 12px 30px;
+    overscroll-behavior:contain;
   }
   .follow-list-item{ width:100%; }
   .search-user-avatar{ overflow:hidden; }
@@ -2504,7 +2517,7 @@
   <div class="compose">
     <svg class="doodle-arrow" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <path d="M 20 80 Q 50 10 90 40" stroke="var(--tape-pink)" fill="none" stroke-width="4" stroke-linecap="round"/>
-      <path d="M 70 30 L 90 40 L 80 60" stroke="var(--tape-pink)" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 67 38 L 90 40 L 81 18" stroke="var(--tape-pink)" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <div class="compose-row compose-row-user">
       <button type="button" class="my-profile-avatar-btn" id="myProfileAvatarBtn" aria-label="Lihat profil kamu">?</button>
