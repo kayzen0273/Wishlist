@@ -5141,8 +5141,8 @@
       // biar konteksnya kelihatan pas dibuka di obrolan.
       const { data, error } = await sb.from(CHAT_TABLE)
         .insert({
-          sender_name: myName,
-          recipient_name: group.username,
+          sender_name: normalizeName(myName),
+          recipient_name: partner,
           content: val,
           reply_story_url: item.media_url,
           reply_story_type: item.media_type
