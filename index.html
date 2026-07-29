@@ -4730,7 +4730,9 @@
     if (!storyId || !ownerKey) return null;
     for (let g = 0; g < storyGroups.length; g++) {
       if (normalizeName(storyGroups[g].username) !== ownerKey) continue;
-      const i = storyGroups[g].items.findIndex(it => it.id === storyId);
+      // Dibandingin sebagai string biar aman, soalnya id cerita dari Supabase bisa balik
+      // sebagai number, sementara data-story-id di HTML selalu berupa string.
+      const i = storyGroups[g].items.findIndex(it => String(it.id) === String(storyId));
       if (i !== -1) return { groupIdx: g, itemIdx: i };
     }
     return null;
