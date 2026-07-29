@@ -6230,13 +6230,32 @@
       ]);
       if (ea) throw ea;
       if (eb) throw eb;
-      chatThreadMessages = [...(a || []), ...(b || [])].sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
+      const freshRows = [...(a || []), ...(b || [])];
+      mergeChatThreadMessages(freshRows);
     } catch (e) {
       console.error('Gagal memuat isi obrolan', e);
-      chatThreadMessages = [];
     }
     if (activeChatPartner === partner) renderChatThread();
     markChatThreadRead(partner);
+  }
+
+  // Gabungkan data terbaru dari server dengan pesan yang lagi kita kirim tapi belum kekonfirmasi
+  // (masih bertanda id "tmp-..."). Kalau dulu pakai overwrite polos, pesan yang baru aja diketik &
+  // dikirim bisa "kehapus sebentar" pas polling nyala di tengah-tengah proses kirim ke server —
+  // itu penyebab pesan kerasa nggak langsung muncul / sempat berkedip hilang.
+  function mergeChatThreadMessages(freshRows) {
+    const pendingLocal = chatThreadMessages.filter(m => {
+      if (typeof m.id !== 'string' || !m.id.startsWith('tmp-')) return false;
+      // Kalau server udah punya baris yang cocok (pengirim + isi sama, waktunya deket), berarti
+      // pesan ini udah kekonfirmasi lewat jalur lain (mis. realtime) — nggak perlu dipertahankan lagi
+      const alreadyConfirmed = freshRows.some(r =>
+        normalizeName(r.sender_name) === normalizeName(m.sender_name) &&
+        r.content === m.content &&
+        Math.abs(new Date(r.created_at) - new Date(m.created_at)) < 15000
+      );
+      return !alreadyConfirmed;
+    });
+    chatThreadMessages = [...freshRows, ...pendingLocal].sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
   }
 
   async function markChatThreadRead(partner) {
