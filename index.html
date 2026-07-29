@@ -6377,6 +6377,8 @@
         loadChatThread(partner);
       }
     }, 1500);
+  }
+  function stopChatThreadPolling() {
     if (chatThreadPollTimer) {
       clearInterval(chatThreadPollTimer);
       chatThreadPollTimer = null;
