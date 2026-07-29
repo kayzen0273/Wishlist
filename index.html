@@ -1807,6 +1807,20 @@
     display:none;
   }
   .chat-list-item.unread .chat-list-dot{ display:block; }
+  .chat-list-delete-btn{
+    flex-shrink:0;
+    width:30px; height:30px;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    opacity:0.55;
+    transition:background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  .chat-list-delete-btn svg{ width:16px; height:16px; }
+  .chat-list-delete-btn:hover{ background:rgba(228,87,46,0.12); color:var(--pin-red); opacity:1; }
 
   .chat-thread-body{
     flex:1;
@@ -3346,6 +3360,15 @@
         <span class="chat-thread-status" id="chatThreadStatus"></span>
       </div>
     </div>
+    <button type="button" class="chat-icon-btn" id="chatThreadDeleteBtn" aria-label="Hapus obrolan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"></polyline>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+        <path d="M10 11v6"></path>
+        <path d="M14 11v6"></path>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+      </svg>
+    </button>
   </div>
   <div class="chat-thread-body" id="chatThreadBody"></div>
   <div class="chat-thread-footer">
@@ -3954,6 +3977,7 @@
   const chatThreadBody = document.getElementById('chatThreadBody');
   const chatThreadInput = document.getElementById('chatThreadInput');
   const chatThreadSendBtn = document.getElementById('chatThreadSendBtn');
+  const chatThreadDeleteBtn = document.getElementById('chatThreadDeleteBtn');
   const chatBadge = document.getElementById('chatBadge');
 
   // Elemen Nav Bar Bawah
@@ -6121,6 +6145,15 @@
             <span class="chat-list-time">${timeAgo(c.lastTime)}</span>
             <span class="chat-list-dot"></span>
           </div>
+          <button type="button" class="chat-list-delete-btn" data-delete-partner="${esc(c.partnerKey)}" aria-label="Hapus obrolan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            </svg>
+          </button>
         </div>`;
     }).join('');
   }
@@ -6337,6 +6370,42 @@
     stopChatThreadPolling();
   }
 
+  // Menghapus seluruh riwayat obrolan (dua arah) sama satu lawan bicara, baik dari daftar
+  // percakapan (inbox) maupun dari halaman isi obrolan yang lagi kebuka.
+  async function deleteConversation(partnerKey) {
+    const me = normalizeName(usernameInput.value);
+    if (!me || !partnerKey) return;
+
+    showConfirm(async () => {
+      // Update UI duluan biar kerasa responsif, baru nyusul hapus di server
+      conversations = conversations.filter(c => c.partnerKey !== partnerKey);
+      renderChatList();
+      updateChatBadge();
+
+      const wasOpenThread = activeChatPartner === partnerKey && chatThreadOverlay.classList.contains('open');
+      if (wasOpenThread) {
+        chatThreadOverlay.classList.remove('open');
+        activeChatPartner = null;
+        chatThreadMessages = [];
+        hidePartnerTyping();
+        unsubscribeTypingChannel();
+        stopChatThreadPolling();
+        chatListOverlay.classList.add('open');
+      }
+
+      try {
+        const { error } = await sb.from(CHAT_TABLE)
+          .delete()
+          .or(`and(sender_name.eq.${me},recipient_name.eq.${partnerKey}),and(sender_name.eq.${partnerKey},recipient_name.eq.${me})`);
+        if (error) throw error;
+      } catch (e) {
+        console.error('Gagal menghapus obrolan di Supabase', e);
+        showToast('Gagal menghapus obrolan di server 🥲 Coba lagi ya!');
+        loadConversations();
+      }
+    }, "Hapus Obrolan?", `Semua pesan kamu sama ${partnerKey} bakal kehapus selamanya. Yakin nih?`, "Ya, Hapus", "Batal");
+  }
+
   // Bikin/ganti channel broadcast khusus buat pasangan chat yang lagi dibuka, buat kirim &
   // dengar sinyal "sedang mengetik" secara realtime (nggak nyentuh tabel database sama sekali)
   function subscribeTypingChannel(me, partner) {
@@ -6466,9 +6535,18 @@
   chatThreadBackBtn.addEventListener('click', closeChatThread);
   chatThreadUser.addEventListener('click', () => { if (activeChatPartner) openProfile(activeChatPartner); });
   chatList.addEventListener('click', (e) => {
+    const delBtn = e.target.closest('.chat-list-delete-btn');
+    if (delBtn) {
+      e.stopPropagation();
+      deleteConversation(delBtn.dataset.deletePartner);
+      return;
+    }
     const item = e.target.closest('.chat-list-item');
     if (!item) return;
     openChatThread(item.dataset.partner);
+  });
+  chatThreadDeleteBtn.addEventListener('click', () => {
+    if (activeChatPartner) deleteConversation(activeChatPartner);
   });
   chatListNewBtn.addEventListener('click', () => {
     const show = chatNewRow.style.display === 'none';
