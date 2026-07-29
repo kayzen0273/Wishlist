@@ -1675,6 +1675,29 @@
     overflow:hidden;
     text-overflow:ellipsis;
   }
+  .chat-thread-user-text{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    gap:1px;
+  }
+  .chat-thread-status{
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--tape-blue);
+    height:14px;
+    line-height:14px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    opacity:0;
+    transform:translateY(2px);
+    transition:opacity .15s ease, transform .15s ease;
+  }
+  .chat-thread-status.show{
+    opacity:1;
+    transform:translateY(0);
+  }
 
   .chat-new-row{
     display:flex;
@@ -3318,7 +3341,10 @@
     </button>
     <div class="chat-thread-user" id="chatThreadUser">
       <span class="chat-thread-avatar" id="chatThreadAvatar">?</span>
-      <span class="chat-thread-name" id="chatThreadName">...</span>
+      <div class="chat-thread-user-text">
+        <span class="chat-thread-name" id="chatThreadName">...</span>
+        <span class="chat-thread-status" id="chatThreadStatus"></span>
+      </div>
     </div>
   </div>
   <div class="chat-thread-body" id="chatThreadBody"></div>
@@ -3924,6 +3950,7 @@
   const chatThreadUser = document.getElementById('chatThreadUser');
   const chatThreadAvatar = document.getElementById('chatThreadAvatar');
   const chatThreadName = document.getElementById('chatThreadName');
+  const chatThreadStatus = document.getElementById('chatThreadStatus');
   const chatThreadBody = document.getElementById('chatThreadBody');
   const chatThreadInput = document.getElementById('chatThreadInput');
   const chatThreadSendBtn = document.getElementById('chatThreadSendBtn');
@@ -5983,6 +6010,7 @@
   let activeChatPartner = null; // key (normalized) lawan bicara yang lagi dibuka
   let chatThreadMessages = [];
   let typingChannel = null; // channel broadcast khusus buat sinyal "sedang mengetik" antar 2 orang
+  let typingChannelReady = false; // true kalau channel di atas udah benar-benar SUBSCRIBED (siap kirim)
   let partnerIsTyping = false;
   let partnerTypingHideTimer = null; // auto-sembunyikan indikator kalau lama gak ada sinyal baru
   let myTypingSendTimer = null; // throttle biar broadcast typing gak dikirim tiap huruf
@@ -6116,7 +6144,7 @@
     stopChatListPolling();
     chatListPollTimer = setInterval(() => {
       if (chatListOverlay.classList.contains('open')) loadConversations();
-    }, 6000);
+    }, 2500);
   }
   function closeChatList() {
     chatListOverlay.classList.remove('open');
@@ -6142,7 +6170,7 @@
       // (lebih sering & sekalian render UI-nya), jadi di sini di-skip biar gak dobel request.
       if (chatListOverlay.classList.contains('open') || chatThreadOverlay.classList.contains('open')) return;
       loadConversations();
-    }, 8000);
+    }, 4000);
   }
 
   function renderChatThread() {
@@ -6176,6 +6204,10 @@
     partnerIsTyping = true;
     appendTypingBubble();
     chatThreadBody.scrollTop = chatThreadBody.scrollHeight;
+    if (chatThreadStatus) {
+      chatThreadStatus.innerText = 'sedang mengetik...';
+      chatThreadStatus.classList.add('show');
+    }
     // Reset timer tiap ada sinyal baru; kalau 3 detik gak ada sinyal lagi, anggap berhenti ngetik
     clearTimeout(partnerTypingHideTimer);
     partnerTypingHideTimer = setTimeout(hidePartnerTyping, 3000);
@@ -6186,6 +6218,7 @@
     clearTimeout(partnerTypingHideTimer);
     const row = chatThreadBody.querySelector('.typing-row');
     if (row) row.remove();
+    if (chatThreadStatus) chatThreadStatus.classList.remove('show');
   }
 
   async function loadChatThread(partner) {
@@ -6271,7 +6304,8 @@
   // dengar sinyal "sedang mengetik" secara realtime (nggak nyentuh tabel database sama sekali)
   function subscribeTypingChannel(me, partner) {
     unsubscribeTypingChannel();
-    typingChannel = sb.channel(chatPairChannelName(me, partner))
+    typingChannelReady = false;
+    typingChannel = sb.channel(chatPairChannelName(me, partner), { config: { broadcast: { self: false, ack: true } } })
       .on('broadcast', { event: 'typing' }, (payload) => {
         if (normalizeName(payload.payload && payload.payload.from) === partner) {
           showPartnerTyping();
@@ -6282,13 +6316,19 @@
           hidePartnerTyping();
         }
       })
-      .subscribe();
+      .subscribe((status) => {
+        // Baru boleh kirim broadcast setelah status ini "SUBSCRIBED", kalau kirim lebih
+        // cepat dari itu sinyalnya bisa gak nyampe sama sekali (ini penyebab utama animasi
+        // "sedang mengetik" kadang nggak muncul)
+        typingChannelReady = (status === 'SUBSCRIBED');
+      });
   }
   function unsubscribeTypingChannel() {
     if (typingChannel) {
       sb.removeChannel(typingChannel);
       typingChannel = null;
     }
+    typingChannelReady = false;
   }
 
   // Fallback polling: tiap beberapa detik cek pesan baru dari server, jaga-jaga kalau
@@ -6299,9 +6339,7 @@
       if (activeChatPartner === partner && chatThreadOverlay.classList.contains('open')) {
         loadChatThread(partner);
       }
-    }, 4000);
-  }
-  function stopChatThreadPolling() {
+    }, 1500);
     if (chatThreadPollTimer) {
       clearInterval(chatThreadPollTimer);
       chatThreadPollTimer = null;
@@ -6416,8 +6454,16 @@
 
   // Kirim sinyal "typing" ke lawan bicara lewat channel broadcast, di-throttle biar nggak
   // nembak event tiap satu huruf diketik. Kalau kolom dikosongin, langsung kirim stop-typing.
-  function broadcastTyping(me, partner, event) {
+  // Kirim event broadcast; kalau channel-nya belum "SUBSCRIBED" (baru aja buka thread),
+  // coba lagi sebentar (maks ~1 detik) alih-alih diam aja & sinyalnya ilang percuma.
+  function broadcastTyping(me, partner, event, attemptsLeft) {
     if (!typingChannel || !partner) return;
+    if (!typingChannelReady) {
+      if (attemptsLeft === undefined) attemptsLeft = 5;
+      if (attemptsLeft <= 0) return;
+      setTimeout(() => broadcastTyping(me, partner, event, attemptsLeft - 1), 200);
+      return;
+    }
     typingChannel.send({ type: 'broadcast', event, payload: { from: me } });
   }
   chatThreadInput.addEventListener('input', () => {
@@ -6426,12 +6472,13 @@
     if (!me || !partner) return;
     if (!chatThreadInput.value.trim()) {
       clearTimeout(myTypingSendTimer);
+      myTypingSendTimer = null;
       broadcastTyping(me, partner, 'stop-typing');
       return;
     }
     if (!myTypingSendTimer) {
       broadcastTyping(me, partner, 'typing');
-      myTypingSendTimer = setTimeout(() => { myTypingSendTimer = null; }, 1800);
+      myTypingSendTimer = setTimeout(() => { myTypingSendTimer = null; }, 1200);
     }
   });
 
