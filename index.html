@@ -1449,6 +1449,13 @@
     font-family:'Plus Jakarta Sans', sans-serif;
   }
   .notif-badge.show{ display:flex; }
+  .notif-badge.bump{ animation: badgeBump .45s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes badgeBump{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(1.45); }
+    60%{ transform:scale(0.9); }
+    100%{ transform:scale(1); }
+  }
 
   .notif-overlay{
     position:fixed;
@@ -5982,10 +5989,18 @@
   let chatThreadPollTimer = null; // fallback polling, jaga-jaga kalau realtime telat/miss
   let chatListPollTimer = null; // fallback polling buat daftar obrolan pas list lagi kebuka
 
+  let lastChatBadgeTotal = 0; // buat deteksi kapan unread NAIK, biar animasi bump cuma muncul pas ada pesan baru
   function updateChatBadge() {
     const total = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
     chatBadge.innerText = total > 9 ? '9+' : String(total);
     chatBadge.classList.toggle('show', total > 0);
+    if (total > lastChatBadgeTotal) {
+      chatBadge.classList.remove('bump');
+      // trigger reflow biar animasi bisa dipicu ulang walau class-nya sama kayak sebelumnya
+      void chatBadge.offsetWidth;
+      chatBadge.classList.add('bump');
+    }
+    lastChatBadgeTotal = total;
   }
 
   // Ambil semua pesan yang nyangkut nama kita (baik sebagai pengirim maupun penerima),
@@ -6113,6 +6128,21 @@
       clearInterval(chatListPollTimer);
       chatListPollTimer = null;
     }
+  }
+
+  // Polling ringan yang jalan terus di background (di halaman mana pun user lagi berada),
+  // khusus buat jaga-jaga badge titik merah di nav bar "Pesan" tetap update real-time walau
+  // koneksi realtime Supabase lagi telat/putus. Nggak nyentuh UI daftar/isi chat sama sekali
+  // kalau overlay-nya lagi ketutup — cuma update badge & data conversations di belakang layar.
+  function startGlobalChatBadgePolling() {
+    setInterval(() => {
+      const me = normalizeName(usernameInput.value);
+      if (!me) return;
+      // Kalau list/thread chat lagi kebuka, biarkan polling khusus mereka yang jalan
+      // (lebih sering & sekalian render UI-nya), jadi di sini di-skip biar gak dobel request.
+      if (chatListOverlay.classList.contains('open') || chatThreadOverlay.classList.contains('open')) return;
+      loadConversations();
+    }, 8000);
   }
 
   function renderChatThread() {
@@ -7892,6 +7922,7 @@
   subscribeNotificationsRealtime();
   loadConversations();
   subscribeChatRealtime();
+  startGlobalChatBadgePolling();
 })();
 </script>
 
