@@ -1812,6 +1812,36 @@
     font-size:19px;
     line-height:1.5;
   }
+  /* Bubble animasi "sedang mengetik..." di dalam obrolan */
+  .chat-bubble-row.typing-row{
+    animation: typingRowIn .18s ease both;
+  }
+  .chat-typing-bubble{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:11px 14px;
+    border-radius:16px;
+    background:#fff;
+    border:1.5px solid var(--paper-edge);
+  }
+  .chat-typing-bubble .dot{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--ink-soft);
+    opacity:0.6;
+    animation: typingDot 1.1s ease-in-out infinite;
+  }
+  .chat-typing-bubble .dot:nth-child(2){ animation-delay:0.15s; }
+  .chat-typing-bubble .dot:nth-child(3){ animation-delay:0.3s; }
+  @keyframes typingDot{
+    0%, 60%, 100%{ transform:translateY(0); opacity:0.5; }
+    30%{ transform:translateY(-4px); opacity:1; }
+  }
+  @keyframes typingRowIn{
+    from{ opacity:0; transform:translateY(4px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
   .chat-thread-footer{
     display:flex;
     align-items:center;
@@ -3954,6 +3984,12 @@
     return (n || '').trim().toLowerCase();
   }
 
+  // Nama channel realtime yang sama persis buat 2 orang yang lagi chat, nggak peduli
+  // siapa yang buka duluan (diurutkan biar "budi-ani" == "ani-budi")
+  function chatPairChannelName(a, b) {
+    return 'typing:' + [a, b].sort().join('__');
+  }
+
   // Meng-escape karakter HTML biar teks notifikasi (nama/preview komen) aman dirender
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -5939,6 +5975,12 @@
   let conversations = []; // [{ partnerKey, partnerName, lastMessage, lastTime, unreadCount, avatarUrl }]
   let activeChatPartner = null; // key (normalized) lawan bicara yang lagi dibuka
   let chatThreadMessages = [];
+  let typingChannel = null; // channel broadcast khusus buat sinyal "sedang mengetik" antar 2 orang
+  let partnerIsTyping = false;
+  let partnerTypingHideTimer = null; // auto-sembunyikan indikator kalau lama gak ada sinyal baru
+  let myTypingSendTimer = null; // throttle biar broadcast typing gak dikirim tiap huruf
+  let chatThreadPollTimer = null; // fallback polling, jaga-jaga kalau realtime telat/miss
+  let chatListPollTimer = null; // fallback polling buat daftar obrolan pas list lagi kebuka
 
   function updateChatBadge() {
     const total = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
@@ -6056,23 +6098,64 @@
     chatNewSuggestions.classList.remove('show');
     setActiveNav('chat');
     loadConversations();
+    stopChatListPolling();
+    chatListPollTimer = setInterval(() => {
+      if (chatListOverlay.classList.contains('open')) loadConversations();
+    }, 6000);
   }
   function closeChatList() {
     chatListOverlay.classList.remove('open');
     setActiveNav('home');
+    stopChatListPolling();
+  }
+  function stopChatListPolling() {
+    if (chatListPollTimer) {
+      clearInterval(chatListPollTimer);
+      chatListPollTimer = null;
+    }
   }
 
   function renderChatThread() {
     const me = normalizeName(usernameInput.value);
     if (!chatThreadMessages.length) {
       chatThreadBody.innerHTML = `<div class="chat-thread-empty">belum ada obrolan, mulai ngobrol yuk~ 👋</div>`;
-      return;
+    } else {
+      chatThreadBody.innerHTML = chatThreadMessages.map(m => {
+        const mine = normalizeName(m.sender_name) === me;
+        return `<div class="chat-bubble-row ${mine ? 'mine' : ''}"><div class="chat-bubble">${esc(m.content)}</div></div>`;
+      }).join('');
     }
-    chatThreadBody.innerHTML = chatThreadMessages.map(m => {
-      const mine = normalizeName(m.sender_name) === me;
-      return `<div class="chat-bubble-row ${mine ? 'mine' : ''}"><div class="chat-bubble">${esc(m.content)}</div></div>`;
-    }).join('');
+    // Render ulang bubble "sedang mengetik" kalau lagi aktif, biar nggak hilang tiap kali
+    // thread di-render ulang (misal pas pesan baru masuk)
+    if (partnerIsTyping) appendTypingBubble();
     chatThreadBody.scrollTop = chatThreadBody.scrollHeight;
+  }
+
+  // Menampilkan bubble titik-titik animasi "sedang mengetik..." di bawah obrolan
+  function appendTypingBubble() {
+    if (chatThreadBody.querySelector('.typing-row')) return;
+    if (chatThreadBody.querySelector('.chat-thread-empty')) chatThreadBody.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'chat-bubble-row typing-row';
+    row.innerHTML = `<div class="chat-typing-bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+    chatThreadBody.appendChild(row);
+    chatThreadBody.scrollTop = chatThreadBody.scrollHeight;
+  }
+
+  function showPartnerTyping() {
+    partnerIsTyping = true;
+    appendTypingBubble();
+    chatThreadBody.scrollTop = chatThreadBody.scrollHeight;
+    // Reset timer tiap ada sinyal baru; kalau 3 detik gak ada sinyal lagi, anggap berhenti ngetik
+    clearTimeout(partnerTypingHideTimer);
+    partnerTypingHideTimer = setTimeout(hidePartnerTyping, 3000);
+  }
+
+  function hidePartnerTyping() {
+    partnerIsTyping = false;
+    clearTimeout(partnerTypingHideTimer);
+    const row = chatThreadBody.querySelector('.typing-row');
+    if (row) row.remove();
   }
 
   async function loadChatThread(partner) {
@@ -6140,12 +6223,59 @@
     chatThreadOverlay.classList.add('open');
     chatThreadBody.innerHTML = `<div class="chat-thread-empty">Memuat...</div>`;
     chatThreadMessages = [];
+    hidePartnerTyping();
     loadChatThread(partner);
+    subscribeTypingChannel(me, partner);
+    startChatThreadPolling(partner);
   }
   function closeChatThread() {
     chatThreadOverlay.classList.remove('open');
     activeChatPartner = null;
     chatListOverlay.classList.add('open');
+    hidePartnerTyping();
+    unsubscribeTypingChannel();
+    stopChatThreadPolling();
+  }
+
+  // Bikin/ganti channel broadcast khusus buat pasangan chat yang lagi dibuka, buat kirim &
+  // dengar sinyal "sedang mengetik" secara realtime (nggak nyentuh tabel database sama sekali)
+  function subscribeTypingChannel(me, partner) {
+    unsubscribeTypingChannel();
+    typingChannel = sb.channel(chatPairChannelName(me, partner))
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if (normalizeName(payload.payload && payload.payload.from) === partner) {
+          showPartnerTyping();
+        }
+      })
+      .on('broadcast', { event: 'stop-typing' }, (payload) => {
+        if (normalizeName(payload.payload && payload.payload.from) === partner) {
+          hidePartnerTyping();
+        }
+      })
+      .subscribe();
+  }
+  function unsubscribeTypingChannel() {
+    if (typingChannel) {
+      sb.removeChannel(typingChannel);
+      typingChannel = null;
+    }
+  }
+
+  // Fallback polling: tiap beberapa detik cek pesan baru dari server, jaga-jaga kalau
+  // koneksi realtime Supabase lagi telat/putus, biar pesan tetap kerasa "langsung muncul"
+  function startChatThreadPolling(partner) {
+    stopChatThreadPolling();
+    chatThreadPollTimer = setInterval(() => {
+      if (activeChatPartner === partner && chatThreadOverlay.classList.contains('open')) {
+        loadChatThread(partner);
+      }
+    }, 4000);
+  }
+  function stopChatThreadPolling() {
+    if (chatThreadPollTimer) {
+      clearInterval(chatThreadPollTimer);
+      chatThreadPollTimer = null;
+    }
   }
 
   async function sendChatMessage() {
@@ -6159,6 +6289,8 @@
       return;
     }
     chatThreadInput.value = '';
+    clearTimeout(myTypingSendTimer);
+    broadcastTyping(me, partner, 'stop-typing');
     const optimistic = {
       id: 'tmp-' + Date.now(),
       sender_name: me,
@@ -6252,6 +6384,27 @@
   chatThreadSendBtn.addEventListener('click', sendChatMessage);
   chatThreadInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChatMessage(); } });
 
+  // Kirim sinyal "typing" ke lawan bicara lewat channel broadcast, di-throttle biar nggak
+  // nembak event tiap satu huruf diketik. Kalau kolom dikosongin, langsung kirim stop-typing.
+  function broadcastTyping(me, partner, event) {
+    if (!typingChannel || !partner) return;
+    typingChannel.send({ type: 'broadcast', event, payload: { from: me } });
+  }
+  chatThreadInput.addEventListener('input', () => {
+    const me = normalizeName(usernameInput.value);
+    const partner = activeChatPartner;
+    if (!me || !partner) return;
+    if (!chatThreadInput.value.trim()) {
+      clearTimeout(myTypingSendTimer);
+      broadcastTyping(me, partner, 'stop-typing');
+      return;
+    }
+    if (!myTypingSendTimer) {
+      broadcastTyping(me, partner, 'typing');
+      myTypingSendTimer = setTimeout(() => { myTypingSendTimer = null; }, 1800);
+    }
+  });
+
   // Update inbox/badge/thread secara realtime tiap ada pesan baru masuk lewat tabel messages
   function subscribeChatRealtime() {
     sb.channel('public:messages')
@@ -6264,6 +6417,7 @@
         if (senderKey !== me && recipientKey !== me) return;
         const partnerKey = senderKey === me ? recipientKey : senderKey;
         if (activeChatPartner === partnerKey && chatThreadOverlay.classList.contains('open')) {
+          if (senderKey === partnerKey) hidePartnerTyping(); // pesan asli udah sampai, dot animasi gak perlu lagi
           if (!chatThreadMessages.some(m => m.id === row.id)) {
             chatThreadMessages.push(row);
             renderChatThread();
@@ -6291,8 +6445,17 @@
     if (profileOverlay.classList.contains('open')) closeProfile();
     if (searchPanel.classList.contains('open')) closeSearchPanel();
     if (notifPanel.classList.contains('open')) closeNotifPanel();
-    if (chatThreadOverlay.classList.contains('open')) { chatThreadOverlay.classList.remove('open'); activeChatPartner = null; }
-    if (chatListOverlay.classList.contains('open')) chatListOverlay.classList.remove('open');
+    if (chatThreadOverlay.classList.contains('open')) {
+      chatThreadOverlay.classList.remove('open');
+      activeChatPartner = null;
+      hidePartnerTyping();
+      unsubscribeTypingChannel();
+      stopChatThreadPolling();
+    }
+    if (chatListOverlay.classList.contains('open')) {
+      chatListOverlay.classList.remove('open');
+      stopChatListPolling();
+    }
   }
 
   bnavHomeBtn.addEventListener('click', () => {
