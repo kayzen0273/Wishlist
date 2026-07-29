@@ -1809,18 +1809,24 @@
   .chat-list-item.unread .chat-list-dot{ display:block; }
   .chat-list-delete-btn{
     flex-shrink:0;
-    width:30px; height:30px;
+    width:32px; height:32px;
     border:none;
     background:transparent;
     color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
     border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
     cursor:pointer;
-    opacity:0.55;
+    opacity:0.6;
     transition:background .15s ease, color .15s ease, opacity .15s ease;
   }
-  .chat-list-delete-btn svg{ width:16px; height:16px; }
-  .chat-list-delete-btn:hover{ background:rgba(228,87,46,0.12); color:var(--pin-red); opacity:1; }
+  .chat-list-delete-btn:hover{
+    background:rgba(228,87,46,0.12);
+    color:var(--pin-red);
+    opacity:1;
+  }
+  .chat-list-delete-btn svg{ width:17px; height:17px; }
 
   .chat-thread-body{
     flex:1;
@@ -3974,10 +3980,10 @@
   const chatThreadAvatar = document.getElementById('chatThreadAvatar');
   const chatThreadName = document.getElementById('chatThreadName');
   const chatThreadStatus = document.getElementById('chatThreadStatus');
+  const chatThreadDeleteBtn = document.getElementById('chatThreadDeleteBtn');
   const chatThreadBody = document.getElementById('chatThreadBody');
   const chatThreadInput = document.getElementById('chatThreadInput');
   const chatThreadSendBtn = document.getElementById('chatThreadSendBtn');
-  const chatThreadDeleteBtn = document.getElementById('chatThreadDeleteBtn');
   const chatBadge = document.getElementById('chatBadge');
 
   // Elemen Nav Bar Bawah
@@ -6030,6 +6036,11 @@
 
   // ===== Pesan (chat DM) — daftar obrolan & isi obrolan per orang =====
   const CHAT_TABLE = 'messages';
+  // Tabel buat nyimpen "titik sembunyi" per orang: kalau A hapus obrolan sama B, yang kesimpen
+  // di sini cuma catatan "A udah nyembunyiin pesan²nya B sebelum jam segini", TANPA nyentuh
+  // baris pesan aslinya sama sekali — jadi di sisi B, obrolannya tetap utuh & gak kehapus.
+  const CHAT_HIDDEN_TABLE = 'chat_deletions';
+  let chatHiddenBefore = {}; // { partnerKey: isoTimestamp } — titik sembunyi obrolan milik "me" saat ini
   let conversations = []; // [{ partnerKey, partnerName, lastMessage, lastTime, unreadCount, avatarUrl }]
   let activeChatPartner = null; // key (normalized) lawan bicara yang lagi dibuka
   let chatThreadMessages = [];
@@ -6059,6 +6070,28 @@
     lastChatBadgeTotal = total;
   }
 
+  // Ambil daftar titik-sembunyi obrolan milik "me" dari tabel chat_deletions, dipakai buat
+  // nyaring pesan lama yang udah "dihapus" (cuma di sisi kita) pas nyusun daftar/isi obrolan.
+  async function loadChatHidden(me) {
+    try {
+      const { data, error } = await sb.from(CHAT_HIDDEN_TABLE).select('partner_name, hidden_before').eq('user_name', me);
+      if (error) throw error;
+      const map = {};
+      (data || []).forEach(r => { map[normalizeName(r.partner_name)] = r.hidden_before; });
+      chatHiddenBefore = map;
+    } catch (e) {
+      console.error('Gagal memuat status obrolan yang disembunyikan', e);
+    }
+  }
+
+  // Cek apakah sebuah pesan harus disembunyikan dari tampilan "me" karena berada sebelum
+  // titik waktu terakhir kali "me" hapus obrolan sama partner ini.
+  function isMessageHiddenForMe(partnerKey, createdAt) {
+    const hiddenBefore = chatHiddenBefore[partnerKey];
+    if (!hiddenBefore) return false;
+    return new Date(createdAt) <= new Date(hiddenBefore);
+  }
+
   // Ambil semua pesan yang nyangkut nama kita (baik sebagai pengirim maupun penerima),
   // terus dikelompokkin per lawan bicara jadi daftar obrolan (kayak inbox DM).
   async function loadConversations() {
@@ -6071,6 +6104,7 @@
     }
     const seq = ++chatConvoLoadSeq;
     try {
+      await loadChatHidden(me);
       const [{ data: sent, error: e1 }, { data: recv, error: e2 }] = await Promise.all([
         sb.from(CHAT_TABLE).select('*').eq('sender_name', me).order('created_at', { ascending: false }).limit(300),
         sb.from(CHAT_TABLE).select('*').eq('recipient_name', me).order('created_at', { ascending: false }).limit(300)
@@ -6086,6 +6120,7 @@
         const recipientKey = normalizeName(r.recipient_name);
         const partnerKey = senderKey === me ? recipientKey : senderKey;
         if (!partnerKey || partnerKey === me) return;
+        if (isMessageHiddenForMe(partnerKey, r.created_at)) return; // pesan ini udah "dihapus" di sisi kita
         const existing = map.get(partnerKey);
         if (!existing || new Date(r.created_at) > new Date(existing.lastTime)) {
           map.set(partnerKey, {
@@ -6145,7 +6180,7 @@
             <span class="chat-list-time">${timeAgo(c.lastTime)}</span>
             <span class="chat-list-dot"></span>
           </div>
-          <button type="button" class="chat-list-delete-btn" data-delete-partner="${esc(c.partnerKey)}" aria-label="Hapus obrolan">
+          <button type="button" class="chat-list-delete-btn" data-partner="${esc(c.partnerKey)}" aria-label="Hapus obrolan">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
@@ -6266,6 +6301,7 @@
     const me = normalizeName(usernameInput.value);
     const seq = ++chatThreadLoadSeq;
     try {
+      await loadChatHidden(me);
       const [{ data: a, error: ea }, { data: b, error: eb }] = await Promise.all([
         sb.from(CHAT_TABLE).select('*').eq('sender_name', me).eq('recipient_name', partner).order('created_at', { ascending: true }).limit(300),
         sb.from(CHAT_TABLE).select('*').eq('sender_name', partner).eq('recipient_name', me).order('created_at', { ascending: true }).limit(300)
@@ -6280,7 +6316,9 @@
       // Kalau user udah pindah ke obrolan lain sebelum respons ini nyampe, jangan dicampur ke
       // array partner yang salah.
       if (activeChatPartner !== partner) return;
-      const freshRows = [...(a || []), ...(b || [])];
+      // Nyaring pesan yang udah "dihapus" cuma di sisi kita (sebelum titik-sembunyi terakhir),
+      // biar chat lama gak muncul lagi walau history aslinya masih utuh di sisi lawan bicara.
+      const freshRows = [...(a || []), ...(b || [])].filter(r => !isMessageHiddenForMe(partner, r.created_at));
       mergeChatThreadMessages(freshRows);
       renderChatThread();
       markChatThreadRead(partner);
@@ -6288,6 +6326,7 @@
       console.error('Gagal memuat isi obrolan', e);
     }
   }
+
 
   // Gabungkan data terbaru dari server dengan pesan yang lagi kita kirim tapi belum kekonfirmasi
   // (masih bertanda id "tmp-..."). Kalau dulu pakai overwrite polos, pesan yang baru aja diketik &
@@ -6370,40 +6409,41 @@
     stopChatThreadPolling();
   }
 
-  // Menghapus seluruh riwayat obrolan (dua arah) sama satu lawan bicara, baik dari daftar
-  // percakapan (inbox) maupun dari halaman isi obrolan yang lagi kebuka.
+  // Menyembunyikan obrolan sama satu lawan bicara — TAPI CUMA DI SISI "me". Caranya bukan
+  // dengan menghapus baris pesan (yang bakal ikut ngilangin di sisi lawan bicara juga), melainkan
+  // nyimpen "titik sembunyi" (waktu sekarang) khusus buat "me" di tabel chat_deletions. Pesan-pesan
+  // sebelum titik itu bakal disaring keluar dari tampilan "me" doang; di sisi partner, histori
+  // obrolannya tetap utuh kayak biasa.
   async function deleteConversation(partnerKey) {
     const me = normalizeName(usernameInput.value);
     if (!me || !partnerKey) return;
+    const hiddenBeforeIso = new Date().toISOString();
+    try {
+      const { error } = await sb.from(CHAT_HIDDEN_TABLE)
+        .upsert({ user_name: me, partner_name: partnerKey, hidden_before: hiddenBeforeIso }, { onConflict: 'user_name,partner_name' });
+      if (error) throw error;
+    } catch (e) {
+      console.error('Gagal menghapus obrolan', e);
+      showToast('Gagal hapus obrolan, coba lagi ya 🥲');
+      return;
+    }
+    chatHiddenBefore[partnerKey] = hiddenBeforeIso;
+    conversations = conversations.filter(c => c.partnerKey !== partnerKey);
+    renderChatList();
+    updateChatBadge();
+    // Kalau obrolan yang dihapus adalah yang lagi kebuka, tutup thread-nya & balik ke daftar
+    if (activeChatPartner === partnerKey) {
+      chatThreadMessages = chatThreadMessages.filter(m => !isMessageHiddenForMe(partnerKey, m.created_at));
+      closeChatThread();
+    }
+    showToast('Obrolan berhasil dihapus dari daftar kamu 🗑️');
+  }
 
-    showConfirm(async () => {
-      // Update UI duluan biar kerasa responsif, baru nyusul hapus di server
-      conversations = conversations.filter(c => c.partnerKey !== partnerKey);
-      renderChatList();
-      updateChatBadge();
-
-      const wasOpenThread = activeChatPartner === partnerKey && chatThreadOverlay.classList.contains('open');
-      if (wasOpenThread) {
-        chatThreadOverlay.classList.remove('open');
-        activeChatPartner = null;
-        chatThreadMessages = [];
-        hidePartnerTyping();
-        unsubscribeTypingChannel();
-        stopChatThreadPolling();
-        chatListOverlay.classList.add('open');
-      }
-
-      try {
-        const { error } = await sb.from(CHAT_TABLE)
-          .delete()
-          .or(`and(sender_name.eq.${me},recipient_name.eq.${partnerKey}),and(sender_name.eq.${partnerKey},recipient_name.eq.${me})`);
-        if (error) throw error;
-      } catch (e) {
-        console.error('Gagal menghapus obrolan di Supabase', e);
-        showToast('Gagal menghapus obrolan di server 🥲 Coba lagi ya!');
-        loadConversations();
-      }
-    }, "Hapus Obrolan?", `Semua pesan kamu sama ${partnerKey} bakal kehapus selamanya. Yakin nih?`, "Ya, Hapus", "Batal");
+  function confirmDeleteConversation(partnerKey) {
+    if (!partnerKey) return;
+    showConfirm(() => {
+      deleteConversation(partnerKey);
+    }, "Hapus Obrolan?", `Obrolan sama ${partnerKey} bakal ilang dari daftar chat kamu. Histori obrolannya di sisi ${partnerKey} tetap ada ya, cuma kehapus di kamu aja.`, "Ya, Hapus", "Batal");
   }
 
   // Bikin/ganti channel broadcast khusus buat pasangan chat yang lagi dibuka, buat kirim &
@@ -6538,7 +6578,7 @@
     const delBtn = e.target.closest('.chat-list-delete-btn');
     if (delBtn) {
       e.stopPropagation();
-      deleteConversation(delBtn.dataset.deletePartner);
+      confirmDeleteConversation(delBtn.dataset.partner);
       return;
     }
     const item = e.target.closest('.chat-list-item');
@@ -6546,7 +6586,7 @@
     openChatThread(item.dataset.partner);
   });
   chatThreadDeleteBtn.addEventListener('click', () => {
-    if (activeChatPartner) deleteConversation(activeChatPartner);
+    confirmDeleteConversation(activeChatPartner);
   });
   chatListNewBtn.addEventListener('click', () => {
     const show = chatNewRow.style.display === 'none';
