@@ -1838,8 +1838,41 @@
   }
   .chat-bubble-row{ display:flex; }
   .chat-bubble-row.mine{ justify-content:flex-end; }
-  .chat-bubble{
+  .chat-bubble-col{
+    display:flex;
+    flex-direction:column;
     max-width:75%;
+  }
+  .chat-bubble-row.mine .chat-bubble-col{ align-items:flex-end; }
+  .chat-story-reply{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:4px;
+    padding:4px 8px 4px 4px;
+    border-radius:14px;
+    background:rgba(58,42,28,0.06);
+  }
+  .chat-story-reply-thumb{
+    width:28px; height:38px;
+    border-radius:8px;
+    overflow:hidden;
+    flex-shrink:0;
+    background:#000;
+    border:1.5px solid var(--paper-edge);
+  }
+  .chat-story-reply-thumb img, .chat-story-reply-thumb video{
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .chat-story-reply-label{
+    font-size:11px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+  .chat-bubble{
+    max-width:100%;
     padding:9px 13px;
     border-radius:16px;
     font-size:13.5px;
@@ -5083,7 +5116,7 @@
     }
   });
 
-  function sendStoryReply() {
+  async function sendStoryReply() {
     const group = storyGroups[currentStoryGroupIdx];
     const item = group && group.items[currentStoryItemIdx];
     if (!item || group.isMine) return;
@@ -5097,11 +5130,34 @@
       return;
     }
 
-    insertNotification({ recipientName: group.username, actorName: myName, type: 'story_reply', previewText: val });
+    const partner = normalizeName(group.username);
     storyViewerReplyInput.value = '';
     storyViewerReplyInput.blur();
-    showToast('Pesan kamu terkirim! 💌');
-    resumeStory();
+    storyViewerSendBtn.disabled = true;
+
+    try {
+      // Balasan cerita dikirim sebagai pesan chat beneran (persis kayak reply story di
+      // Instagram yang langsung nyampe ke DM), sekalian bawa cuplikan cerita yang dibalas
+      // biar konteksnya kelihatan pas dibuka di obrolan.
+      const { data, error } = await sb.from(CHAT_TABLE)
+        .insert({
+          sender_name: myName,
+          recipient_name: group.username,
+          content: val,
+          reply_story_url: item.media_url,
+          reply_story_type: item.media_type
+        })
+        .select().single();
+      if (error) throw error;
+      upsertConversationPreview(partner, val, data.created_at, false, true);
+      showToast('Pesan kamu terkirim ke chat! 💌');
+    } catch (e) {
+      console.error('Gagal mengirim balasan cerita', e);
+      showToast('Gagal ngirim balasan, coba lagi ya 🥲');
+    } finally {
+      storyViewerSendBtn.disabled = false;
+      resumeStory();
+    }
   }
   storyViewerSendBtn.addEventListener('click', sendStoryReply);
   storyViewerReplyInput.addEventListener('keydown', (e) => {
@@ -6128,6 +6184,7 @@
             partnerName: partnerKey,
             lastMessage: r.content,
             lastTime: r.created_at,
+            lastIsStoryReply: !!r.reply_story_url,
             unreadCount: existing ? existing.unreadCount : 0,
             avatarUrl: null
           });
@@ -6174,7 +6231,7 @@
           <span class="chat-list-avatar" ${avatarStyle}>${c.avatarUrl ? '' : esc(initials(c.partnerName))}</span>
           <div class="chat-list-body">
             <div class="chat-list-name">${esc(c.partnerName)}</div>
-            <div class="chat-list-preview">${esc(c.lastMessage || '')}</div>
+            <div class="chat-list-preview">${c.lastIsStoryReply ? '📷 Membalas cerita: ' : ''}${esc(c.lastMessage || '')}</div>
           </div>
           <div class="chat-list-meta">
             <span class="chat-list-time">${timeAgo(c.lastTime)}</span>
@@ -6195,7 +6252,7 @@
 
   // Nambah/geser obrolan ke atas daftar begitu ada pesan baru masuk/keluar, tanpa nunggu
   // reload penuh dari Supabase (biar inbox-nya kerasa realtime & responsif).
-  function upsertConversationPreview(partnerKey, content, time, incrementUnread) {
+  function upsertConversationPreview(partnerKey, content, time, incrementUnread, isStoryReply) {
     let convo = conversations.find(c => c.partnerKey === partnerKey);
     if (!convo) {
       convo = { partnerKey, partnerName: partnerKey, lastMessage: content, lastTime: time, unreadCount: 0, avatarUrl: null };
@@ -6204,6 +6261,7 @@
     }
     convo.lastMessage = content;
     convo.lastTime = time;
+    convo.lastIsStoryReply = !!isStoryReply;
     if (incrementUnread) convo.unreadCount = (convo.unreadCount || 0) + 1;
     conversations.unshift(convo);
     renderChatList();
@@ -6256,7 +6314,16 @@
     } else {
       chatThreadBody.innerHTML = chatThreadMessages.map(m => {
         const mine = normalizeName(m.sender_name) === me;
-        return `<div class="chat-bubble-row ${mine ? 'mine' : ''}"><div class="chat-bubble">${esc(m.content)}</div></div>`;
+        const storyCard = m.reply_story_url ? `
+          <div class="chat-story-reply">
+            <span class="chat-story-reply-thumb">
+              ${m.reply_story_type === 'video'
+                ? `<video src="${m.reply_story_url}" muted playsinline></video>`
+                : `<img src="${m.reply_story_url}" alt="cerita">`}
+            </span>
+            <span class="chat-story-reply-label">Membalas ${mine ? 'cerita ' + esc(m.recipient_name) : 'ceritamu'}</span>
+          </div>` : '';
+        return `<div class="chat-bubble-row ${mine ? 'mine' : ''}"><div class="chat-bubble-col">${storyCard}<div class="chat-bubble">${esc(m.content)}</div></div></div>`;
       }).join('');
     }
     // Render ulang bubble "sedang mengetik" kalau lagi aktif, biar nggak hilang tiap kali
@@ -6658,7 +6725,7 @@
           }
           if (recipientKey === me) markChatThreadRead(partnerKey);
         } else if (recipientKey === me) {
-          upsertConversationPreview(partnerKey, row.content, row.created_at, true);
+          upsertConversationPreview(partnerKey, row.content, row.created_at, true, !!row.reply_story_url);
         }
       })
       .subscribe();
