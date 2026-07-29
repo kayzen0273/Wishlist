@@ -1852,7 +1852,11 @@
     padding:4px 8px 4px 4px;
     border-radius:14px;
     background:rgba(58,42,28,0.06);
+    cursor:pointer;
+    transition:background .15s ease;
   }
+  .chat-story-reply:hover{ background:rgba(58,42,28,0.12); }
+  .chat-story-reply:active{ background:rgba(58,42,28,0.16); }
   .chat-story-reply-thumb{
     width:28px; height:38px;
     border-radius:8px;
@@ -4720,6 +4724,46 @@
     }
   });
 
+  // Cari posisi (index grup & index item) sebuah cerita di storyGroups yang lagi aktif,
+  // berdasarkan id cerita & username pemiliknya.
+  function findStoryIndexById(storyId, ownerKey) {
+    if (!storyId || !ownerKey) return null;
+    for (let g = 0; g < storyGroups.length; g++) {
+      if (normalizeName(storyGroups[g].username) !== ownerKey) continue;
+      const i = storyGroups[g].items.findIndex(it => it.id === storyId);
+      if (i !== -1) return { groupIdx: g, itemIdx: i };
+    }
+    return null;
+  }
+
+  // Dipanggil pas nge-klik kartu "Membalas cerita" di dalam bubble chat — bakal nutup
+  // overlay chat lalu buka langsung ceritanya, kayak nge-tap reply cerita di Instagram.
+  async function openStoryReplyFromChat(storyId, ownerKey) {
+    if (!storyId || !ownerKey) {
+      showToast('Cerita ini udah nggak ada lagi 😢');
+      return;
+    }
+    let pos = findStoryIndexById(storyId, ownerKey);
+    if (!pos) {
+      await loadStories(); // mungkin belum sempat ke-refresh, coba muat ulang dulu
+      pos = findStoryIndexById(storyId, ownerKey);
+    }
+    if (!pos) {
+      showToast('Cerita ini udah nggak ada lagi 😢');
+      return;
+    }
+    // Tutup overlay chat (list & thread) tanpa balik nampilin daftar chat, baru buka ceritanya
+    chatThreadOverlay.classList.remove('open');
+    chatListOverlay.classList.remove('open');
+    activeChatPartner = null;
+    hidePartnerTyping();
+    unsubscribeTypingChannel();
+    stopChatThreadPolling();
+    stopChatListPolling();
+    setActiveNav('home');
+    openStoryViewer(pos.groupIdx, pos.itemIdx);
+  }
+
   // ----- Viewer cerita -----
   function openStoryViewer(groupIdx, itemIdx) {
     if (!storyGroups[groupIdx]) return;
@@ -5144,6 +5188,7 @@
           sender_name: normalizeName(myName),
           recipient_name: partner,
           content: val,
+          reply_story_id: item.id,
           reply_story_url: item.media_url,
           reply_story_type: item.media_type
         })
@@ -6315,7 +6360,7 @@
       chatThreadBody.innerHTML = chatThreadMessages.map(m => {
         const mine = normalizeName(m.sender_name) === me;
         const storyCard = m.reply_story_url ? `
-          <div class="chat-story-reply">
+          <div class="chat-story-reply" data-story-id="${esc(m.reply_story_id || '')}" data-story-owner="${esc(normalizeName(m.recipient_name))}" role="button" tabindex="0">
             <span class="chat-story-reply-thumb">
               ${m.reply_story_type === 'video'
                 ? `<video src="${m.reply_story_url}" muted playsinline></video>`
@@ -6674,6 +6719,18 @@
     openChatThread(item.dataset.name);
   });
   chatThreadSendBtn.addEventListener('click', sendChatMessage);
+  chatThreadBody.addEventListener('click', (e) => {
+    const card = e.target.closest('.chat-story-reply');
+    if (!card) return;
+    openStoryReplyFromChat(card.dataset.storyId, card.dataset.storyOwner);
+  });
+  chatThreadBody.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const card = e.target.closest('.chat-story-reply');
+    if (!card) return;
+    e.preventDefault();
+    openStoryReplyFromChat(card.dataset.storyId, card.dataset.storyOwner);
+  });
   chatThreadInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChatMessage(); } });
 
   // Kirim sinyal "typing" ke lawan bicara lewat channel broadcast, di-throttle biar nggak
