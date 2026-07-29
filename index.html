@@ -6015,7 +6015,11 @@
   let partnerTypingHideTimer = null; // auto-sembunyikan indikator kalau lama gak ada sinyal baru
   let myTypingSendTimer = null; // throttle biar broadcast typing gak dikirim tiap huruf
   let chatThreadPollTimer = null; // fallback polling, jaga-jaga kalau realtime telat/miss
+  let chatThreadLoadSeq = 0; // penomor urutan tiap kali loadChatThread dipanggil (buat cegah race condition)
+  let chatThreadAppliedSeq = 0; // nomor urutan respons terakhir yang beneran udah diterapkan ke UI
   let chatListPollTimer = null; // fallback polling buat daftar obrolan pas list lagi kebuka
+  let chatConvoLoadSeq = 0; // penomor urutan tiap kali loadConversations dipanggil
+  let chatConvoAppliedSeq = 0; // nomor urutan respons terakhir yang beneran udah diterapkan ke UI
 
   let lastChatBadgeTotal = 0; // buat deteksi kapan unread NAIK, biar animasi bump cuma muncul pas ada pesan baru
   function updateChatBadge() {
@@ -6041,6 +6045,7 @@
       updateChatBadge();
       return;
     }
+    const seq = ++chatConvoLoadSeq;
     try {
       const [{ data: sent, error: e1 }, { data: recv, error: e2 }] = await Promise.all([
         sb.from(CHAT_TABLE).select('*').eq('sender_name', me).order('created_at', { ascending: false }).limit(300),
@@ -6048,6 +6053,8 @@
       ]);
       if (e1) throw e1;
       if (e2) throw e2;
+      if (seq <= chatConvoAppliedSeq) return; // respons basi, ada yang lebih baru udah lebih dulu diterapkan
+      chatConvoAppliedSeq = seq;
       const rows = [...(sent || []), ...(recv || [])];
       const map = new Map();
       rows.forEach(r => {
@@ -6079,6 +6086,7 @@
       }
     } catch (e) {
       console.error('Gagal memuat daftar pesan', e);
+      return;
     }
     renderChatList();
     updateChatBadge();
@@ -6223,6 +6231,7 @@
 
   async function loadChatThread(partner) {
     const me = normalizeName(usernameInput.value);
+    const seq = ++chatThreadLoadSeq;
     try {
       const [{ data: a, error: ea }, { data: b, error: eb }] = await Promise.all([
         sb.from(CHAT_TABLE).select('*').eq('sender_name', me).eq('recipient_name', partner).order('created_at', { ascending: true }).limit(300),
@@ -6230,13 +6239,21 @@
       ]);
       if (ea) throw ea;
       if (eb) throw eb;
+      // Kalau udah ada request yang lebih baru (issued belakangan) yang duluan selesai, respons
+      // ini "basi" dan HARUS diabaikan — kalau tetap dipakai, data lama bisa nimpa pesan baru
+      // yang udah sempat muncul, bikin kesannya pesan "hilang lagi" pas masih di kolom chat.
+      if (seq <= chatThreadAppliedSeq) return;
+      chatThreadAppliedSeq = seq;
+      // Kalau user udah pindah ke obrolan lain sebelum respons ini nyampe, jangan dicampur ke
+      // array partner yang salah.
+      if (activeChatPartner !== partner) return;
       const freshRows = [...(a || []), ...(b || [])];
       mergeChatThreadMessages(freshRows);
+      renderChatThread();
+      markChatThreadRead(partner);
     } catch (e) {
       console.error('Gagal memuat isi obrolan', e);
     }
-    if (activeChatPartner === partner) renderChatThread();
-    markChatThreadRead(partner);
   }
 
   // Gabungkan data terbaru dari server dengan pesan yang lagi kita kirim tapi belum kekonfirmasi
@@ -6305,6 +6322,7 @@
     chatThreadOverlay.classList.add('open');
     chatThreadBody.innerHTML = `<div class="chat-thread-empty">Memuat...</div>`;
     chatThreadMessages = [];
+    chatThreadAppliedSeq = 0;
     hidePartnerTyping();
     loadChatThread(partner);
     subscribeTypingChannel(me, partner);
